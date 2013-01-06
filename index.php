@@ -82,6 +82,7 @@ function activate() {
 	$options = array(
 		'metakey'          => 'avatarplus_profile_url',
 		'transientkey'     => 'avatarplus_transient_cache',
+		'use_extra_field'  => false,
 		'cache_expiration' => 60 * 60 * 24
 	);
 
