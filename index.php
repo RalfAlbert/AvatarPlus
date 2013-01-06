@@ -9,15 +9,15 @@
  * @subpackage AvatarPlus
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.1.20130103
+ * @version    0.1.20130106
  * @link       http://wordpress.com
  */
 
 /**
  * Plugin Name:	AvatarPlus
  * Plugin URI:	http://yoda.neun12.de
- * Description:	Replacing the standard avatar in comments with a GooglePlus or Facebook avatar if a user enter his G+/FB profile url in comments
- * Version: 	0.1.20130103
+ * Description:	Replacing the standard avatar in comments with a GooglePlus, Facebook or Twitter avatar if a user enter a profile url
+ * Version: 	0.1.20130106
  * Author: 		Ralf Albert
  * Author URI: 	http://yoda.neun12.de
  * Text Domain:
@@ -27,6 +27,11 @@
  */
 
 namespace AvatarPlus;
+use RalfAlbert\lib\v3\Autoloader as Autoloader;
+use RalfAlbert\lib\v3\EnviromentCheck as EnvCheck;
+use AvatarPlus\Url as Url;
+use AvatarPlus\Cache as Cache;
+use AvatarPlus\Backend as Backend;
 
 /**
  * Initialize plugin on theme setup.
@@ -35,7 +40,7 @@ namespace AvatarPlus;
  *
  */
 add_action(
-	'after_setup_theme',
+	'plugins_loaded',
 	__NAMESPACE__ . '\plugin_init',
 	10,
 	0
@@ -46,15 +51,64 @@ register_activation_hook(
 	__NAMESPACE__ . '\activate'
 );
 
+register_deactivation_hook(
+	__FILE__,
+	__NAMESPACE__ . '\deactivate'
+);
+
 register_uninstall_hook(
 	__FILE__,
 	__NAMESPACE__ . '\uninstall'
 );
 
-function activate() {}
+/**
+ * On activation:
+ * - Initialize autoloader
+ * - Check if the PHP- and WP versions are correct
+ * - Add default options
+ */
+function activate() {
+
+	init_autoloader();
+
+	new EnvCheck\WP_Environment_Check(
+		array(
+			'php' => '5.3',
+			'wp'  => '3.5'
+		)
+	);
+
+	// default options
+	$options = array(
+		'metakey'          => 'avatarplus_profile_url',
+		'transientkey'     => 'avatarplus_transient_cache',
+		'cache_expiration' => 60 * 60 * 24
+	);
+
+	add_option( Backend\Backend::OPTION_KEY, $options );
+
+}
 
 /**
- * Remove all comment-meta (profile URLs)
+ * On deactivation:
+ *  - Remove cached urls
+ *  - Remove options
+ */
+function deactivate() {
+
+	init_autoloader();
+
+	delete_site_transient( Backend\Backend::get_option( 'transientkey' ) );
+
+	delete_option( Backend\Backend::OPTION_KEY );
+
+}
+
+/**
+ * On uninstall:
+ *  - Remove all comment-meta (profile URLs)
+ *  - Remove cached urls
+ *  - Remove options
  */
 function uninstall() {
 
@@ -62,7 +116,76 @@ function uninstall() {
 
 	$sql = "DELETE FROM {$wpdb->commentmeta} WHERE meta_key = %s;";
 
-	$result = $wpdb->query( $wpdb->prepare( $sql, get_metakey() ) );
+	$result = $wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'metakey' ) ) );
+
+	delete_transient( Backend\Backend::get_option( 'transientkey' ) );
+
+	delete_option( Backend\Backend::OPTION_KEY );
+
+}
+
+function init_autoloader() {
+
+	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
+
+	$config = new \stdClass();
+	$config->abspath			= __FILE__;
+	$config->include_pathes		= array( '/lib', '/classes' );
+	$config->extensions			= array( '.php' );
+	$config->prefixes			= array( 'class-' );
+	$config->remove_namespace	= __NAMESPACE__;
+
+	Autoloader\WP_Autoloader::init( $config );
+
+
+	return true;
+}
+
+function plugin_init() {
+
+	init_autoloader();
+
+	$backend = new Backend\Backend();
+
+	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
+
+	if( false !== $use_extra_field ){
+
+		// add the field to comment form
+		add_filter(
+			'comment_form_defaults',
+			__NAMESPACE__ . '\add_comment_field'
+		);
+
+		// save data from new comment field on posting a comment
+		add_action(
+			'comment_post',
+			__NAMESPACE__ . '\save_comment_meta_data',
+			10,
+			1
+		);
+
+	}
+
+	// get avatar
+	add_filter(
+		'get_avatar',
+		__NAMESPACE__ . '\get_aplus_avatar',
+		10,
+		5
+	);
+
+	// create menupage
+	if( is_admin() )
+		$backend->init_backend();
+
+	// debugging
+	add_action(
+		'wp_footer',
+		__NAMESPACE__ . '\get_cache_usage',
+		10,
+		0
+	);
 
 }
 
@@ -89,7 +212,7 @@ function add_comment_field( $default_fields ) {
 	if( ! is_array( $default_fields ) || empty( $default_fields ) )
 		return $default_fields;
 
-	$metakey    = get_metakey();
+	$metakey    = Backend\Backend::get_option( 'metakey' );
 	$label_text = apply_filters( 'avatarplus_labeltext', 'Profile URL' );
 
 	$comment_field_template =
@@ -119,7 +242,7 @@ function save_comment_meta_data( $comment_id ) {
 	else
 		$comment_id = (int) $comment_id;
 
-	$metakey = get_metakey();
+	$metakey = Backend\Backend::get_option( 'metakey' );
 
 	add_comment_meta(
 		$comment_id,
@@ -150,18 +273,10 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 	else
 		$comment = (object) $comment;
 
-//TODO: move to converter
-/*
-	$apikey = apply_filters( 'avatarplus_apikey', false );
-
-	// no key, no G+ avatar!!
-	if( empty( $apikey ) && 'gplus' === get_services() )
-		return $avatar;
-*/
-	$aplus_avatar   = '';
-	$profile_url    = '';
-	$avatar_url     = '';
-	$url_converter  = new URL_Converter_Profile_To_Avatar();
+	$aplus_avatar      = null;
+	$aplus_avatar_html = null;
+	$profile_url       = '';
+	$metakey           = Backend\Backend::get_option( 'metakey' );
 
 	// prevent error message on dashboard if the comment ID is not set
 	// do NOT use get_comment_ID(), this will raise the error messages again!
@@ -172,80 +287,61 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 	// test if it is a valid url. If the url is not empty, we just try to
 	// get the avatar url. If it fails, get_avatar_url() returns
 	// an empty string and trigger the fallback to the WP avatar
-	$profile_url = get_comment_meta( $comment_id, get_metakey(), true );
+	$profile_url = get_comment_meta( $comment_id, $metakey, true );
 
-	$avatar_url = ( ! empty( $profile_url ) ) ?
-		$url_converter->get_avatar_url( $profile_url, $size ) :
-		$url_converter->get_avatar_url( $comment->comment_author_url, $size );
-
-//TODO: Caching avatar url / profile_url
-
-	$aplus_avatar = $url_converter->replace_avatar_source( $avatar, $avatar_url );
+	$aplus_avatar = ( ! empty( $profile_url ) ) ?
+		new Url\Profile_To_Avatar( $profile_url, $size ) :
+		new Url\Profile_To_Avatar( $comment->comment_author_url, $size );
 
 	// reset to default avatar if faild getting avatar from profile url
-	return ( empty( $aplus_avatar ) ) ?
-		$avatar : $aplus_avatar;
+	if( false === $aplus_avatar->is_url_reachable() )
+		return $avatar;
+
+	$aplus_avatar_html = replace_avatar_html( $avatar, $aplus_avatar->get_avatar_url( $size ), $size, $alt );
+
+	return $aplus_avatar_html;
 
 }
 
 /**
- * Get avatar urls from different services (such like GooglePlus and Facebook)
- *
- * @author Ralf Albert
- *
+ * Replacing the attributes in the WP avatar <img>-tag
+ * @param string $html The html to modify
+ * @param string $url URL replacement
+ * @param number $size Size replacement
+ * @param string $alt Alternate text replacement
+ * @return string Modified <img>-tag
  */
-class URL_Converter_Profile_To_Avatar
-{
-	/**
-	 * Size of the avatar image
-	 * @var int
-	 */
-	public $size = 0;
+function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
-	/**
-	 * If the original url redirect to a profile url, this is the profile url
-	 * @var string
-	 */
-	public $real_url = '';
+	if( empty( $html ) )
+		return '';
 
-	public function get_avatar_url( $url = '', $size = 96 ){
+	$search_and_replace = array(
+			'src'    => 'url',
+			'alt'    => 'alt',
+			'width'  => 'size',
+			'height' => 'size'
+	);
 
-		$url = $this->vasa( $url, 'url' );
-		if( empty( $url ) )
-			return '';
+	foreach( $search_and_replace as $attrib => $var ) {
 
-		$this->size = ( 0 !== $this->vasa( $size, 'int' ) ) ?
-			$this->vasa( $size, 'int' ) : 96;
-
+		if( ! empty( $$var ) )
+			$html = preg_replace(
+					sprintf( '#%s=(["|\'])(.*)(["|\'])#Uuis', $attrib ),
+					sprintf( '%s=${1}%s${3}', $attrib, $$var ),
+					$html
+			);
 
 
 	}
 
-	public function replace_avatar_source( $old_avatrar, $source ){}
+	return $html;
 
-	protected function vasa( $what, $how ) {
+}
 
-		$how = strtolower( $how );
+function get_cache_usage() {
 
-		if( ! key_exists( $how, $actions ) )
-			return null;
+	$cache = new Cache\Cache();
 
-		$actions = array(
-			'url' => function ( $url ) { return filter_var( $url, FILTER_SANITIZE_URL ) & filter_var( $url, FILTER_VALIDATE_URL ); },
-			'str' => function ( $str ) { return  (bool) filter_var( $str, FILTER_SANITIZE_STRING ) & is_string( $str ); },
-			'int' => function ( $int ) { return (bool) filter_var( $int, FILTER_SANITIZE_NUMBER_INT ) & is_integer( $int ); },
-		);
-
-		return $actions[$how] ( $what );
-
-	}
-
-	protected function get_real_url( $url = '' ) {
-
-		$result = wp_remote_get( $url, array( 'sslverify' => false, 'rediretions' => 0 ) );
-
-		if( '301' === $result['code'] )
-			$this->is_redirect = true;
-
-	}
+	printf( '<p style="text-align:center">Cache hits: %d / Chache missed: %d</p>', $cache::$chache_hits, $cache::$chache_miss );
 }
