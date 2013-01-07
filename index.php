@@ -81,9 +81,8 @@ function activate() {
 	// default options
 	$options = array(
 		'metakey'          => 'avatarplus_profile_url',
-		'transientkey'     => 'avatarplus_transient_cache',
+		'cachingkey'       => 'avatarplus_caching',
 		'use_extra_field'  => false,
-		'cache_expiration' => 60 * 60 * 24
 	);
 
 	add_option( Backend\Backend::OPTION_KEY, $options );
@@ -97,30 +96,36 @@ function activate() {
  */
 function deactivate() {
 
-	init_autoloader();
+	global $wpdb;
 
-	delete_site_transient( Backend\Backend::get_option( 'transientkey' ) );
+	// delete caching data
+	$sql = "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s;";
+	$wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'cachingkey' ) ) );
 
-	delete_option( Backend\Backend::OPTION_KEY );
+// 	init_autoloader();
+// 	delete_option( Backend\Backend::OPTION_KEY );
 
 }
 
 /**
  * On uninstall:
  *  - Remove all comment-meta (profile URLs)
- *  - Remove cached urls
+ *  - Remove all post-meta (cached URLs)
  *  - Remove options
  */
 function uninstall() {
 
 	global $wpdb;
 
+	// delete extra field data
 	$sql = "DELETE FROM {$wpdb->commentmeta} WHERE meta_key = %s;";
+	$wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'metakey' ) ) );
 
-	$result = $wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'metakey' ) ) );
+	// delete caching data
+	$sql = "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s;";
+	$wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'cachingkey' ) ) );
 
-	delete_transient( Backend\Backend::get_option( 'transientkey' ) );
-
+	// remove options
 	delete_option( Backend\Backend::OPTION_KEY );
 
 }
@@ -146,11 +151,9 @@ function plugin_init() {
 
 	init_autoloader();
 
-	$backend = new Backend\Backend();
-
 	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
 
-	if( false !== $use_extra_field ){
+	if( false !== $use_extra_field ) {
 
 		// add the field to comment form
 		add_filter(
@@ -178,7 +181,8 @@ function plugin_init() {
 
 	// create menupage
 	if( is_admin() )
-		$backend->init_backend();
+		$backend = new Backend\Backend();
+
 
 	// debugging
 	add_action(
@@ -187,17 +191,6 @@ function plugin_init() {
 		10,
 		0
 	);
-
-}
-
-/**
- * Get the metakey used by AvatarPlus
- *
- * @return string The used metakey
- */
-function get_metakey(){
-
-	return 'avatarplus_profile_url';
 
 }
 
@@ -267,7 +260,7 @@ function save_comment_meta_data( $comment_id ) {
  */
 function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 
-	global $comment;
+	global $comment, $post;
 
 	if( empty( $comment ) )
 		return $comment;
@@ -291,8 +284,8 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 	$profile_url = get_comment_meta( $comment_id, $metakey, true );
 
 	$aplus_avatar = ( ! empty( $profile_url ) ) ?
-		new Url\Profile_To_Avatar( $profile_url, $size ) :
-		new Url\Profile_To_Avatar( $comment->comment_author_url, $size );
+		new Url\Profile_To_Avatar( $profile_url, $size, $post->ID ) :
+		new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
 
 	// reset to default avatar if faild getting avatar from profile url
 	if( false === $aplus_avatar->is_url_reachable() )
@@ -345,4 +338,5 @@ function get_cache_usage() {
 	$cache = new Cache\Cache();
 
 	printf( '<p style="text-align:center">Cache hits: %d / Chache missed: %d</p>', $cache::$chache_hits, $cache::$chache_miss );
+
 }

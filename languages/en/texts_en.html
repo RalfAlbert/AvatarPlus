@@ -1,0 +1,14 @@
+<html>
+<!--main_section-->
+<p>Welcome to AvatarPlus, the flexible avatar plugin. This plugin allow you to use profile images from Google Plus, Facebook and Twitter as avatar images.</p>
+<!--aplus_section-->
+<p>In this section, you will find two options. If you want to use an extra field in the comment form, select the checkbox <em>Extra Field</em>. This will insert a new input field where the users can enter a profile url.<br>
+In some cases it is better to use the homepage field, which is a standard field in the comment form. AvatarPlus test the url if it is a profile url or if the url redirects to a profile url. If the user does not enter a profile url, AvatarPlus fallback to the avatar image created by WordPress.<br>
+This is the reason why AvatarPlus can handle short urls. If the user enter for example <code>http://www.example.com/+</code> as short url for his Google+ profile, AvatarPlus will resolve this short url.</p>
+<p>AvatarPlus uses a very simple caching mechanism. It does not cache the images, it only cahce the urls. So it is not needed to refresh the cache very often, but from time to time it could be helpfull to refresh the cache.<br>
+If the cache is empty, the comments need a bit more time to display because AvatarPlus try to resolve every redirected url and have to store the results in the cache.</p>  
+<!--gplus_section-->
+<p>You will need a Google API key if you want to use the Google+ profile images. <a href="https://developers.google.com/+/api/oauth#apikey">Learn how to get your API key</a>.<br>
+Without an API key, AvatarPlus is not allowed to use the Google+ API and so not able to display profil images from Google+. In this case, the avatar image created by WordPress is used.</p>
+<p>After creating your API key, insert it into the input field below.</p>
+</html>

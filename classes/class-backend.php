@@ -21,13 +21,19 @@ class Backend
 
 	const MENU_SLUG = 'avatarplus';
 
+	const TEXTDOMAIN = 'avatarplus';
+
+	public $basename = '';
+
+	public $html = array();
+
 	public static $options = array();
 
-	public $textdomain = 'avatarplus';
+	public function __construct() {
 
-	public function __construct() {}
+		$this->basename = plugin_dir_path( dirname( __FILE__ ) );
 
-	public function init_backend() {
+		$this->init_translation();
 
 		add_action( 'admin_init', array( $this, 'settings_api_init' ), 1, 0 );
 		add_action( 'admin_menu', array( $this, 'add_menu_page' ), 10, 0 );
@@ -47,6 +53,25 @@ class Backend
 
 	}
 
+	public function init_translation() {
+
+		$lang_dir = $this->basename . 'languages';
+
+		load_plugin_textdomain( self::TEXTDOMAIN, false, $lang_dir );
+
+		$lang = ( defined( 'WPLANG') ) ?
+		$lang = substr( WPLANG, 0, 2 ) : 'en';
+
+		if( is_dir( $lang_dir . '/' . $lang ) )
+			$lang_dir .= '/' . $lang . '/';
+		else
+			$lang_dir .= '/en/';
+
+
+		$this->html = glob( $lang_dir . '*.{htm,html}', GLOB_BRACE );
+
+	}
+
 	/**
 	 *
 	 * Initialise the WordPress Settings-API
@@ -59,16 +84,15 @@ class Backend
 		// the sections
 		$sections = array(
 			// section-id => title, callback
-			'aplus' => array( 'title' => __( 'AvatarPlus settings', $this->textdomain), 'callback' => 'aplus_section' ),
-			'gplus'  => array( 'title' => __( 'GooglePlus', $this->textdomain ), 'callback' => 'gplus_section' ),
+			'aplus' => array( 'title' => __( 'AvatarPlus settings', self::TEXTDOMAIN), 'callback' => 'aplus_section' ),
+			'gplus'  => array( 'title' => __( 'GooglePlus', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
 		);
 
 		// fields for the sections
 		$fields = array(
 			// field-id => in-section, title, callback
-			'field_1'	=> array( 'section' => 'aplus', 'title' => __( 'Extra field', $this->textdomain ), 'callback' => 'comment_field' ),
-			'field_2'	=> array( 'section' => 'aplus', 'title' => __( 'Cache Expiration', $this->textdomain ), 'callback' => 'expiration_field' ),
-			'field_3'	=> array( 'section' => 'gplus', 'title' => __( 'GooglePlus API key', $this->textdomain ), 'callback' => 'gplus_field' ),
+			'field_1'	=> array( 'section' => 'aplus', 'title' => __( 'Extra field', self::TEXTDOMAIN ), 'callback' => 'comment_field' ),
+			'field_3'	=> array( 'section' => 'gplus', 'title' => __( 'GooglePlus API key', self::TEXTDOMAIN ), 'callback' => 'gplus_field' ),
 		);
 
 		// register settings
@@ -115,7 +139,7 @@ class Backend
 			'AvatarPlus',
 			'manage_options',
 			self::MENU_SLUG,
-			array( $this, 'main_menu' ),
+			array( $this, 'main_section' ),
 			false,
 			'bottom'
 		);
@@ -137,21 +161,29 @@ class Backend
 
 	}
 
-	public function main_menu() {
+	public function get_text( $section = '' ) {
+
+		if( empty( $section ) )
+			return false;
+
+
+	}
+
+	public function main_section() {
 
 		if( ! current_user_can( 'manage_options' ) )
 			return;
 
 		echo '<div class="wrap"><h1>AvatarPlus</h1>';
 
-echo '<p>BlahblubbersuelzABOUT AvatarPlus</p>';
+		echo '<p>Welcome to AvatarPlus, the flexible avatar plugin. This plugin allow you to use profile images from Google Plus, Facebook and Twitter as avatar images.</p>';
 
 		echo '<form action="options.php" method="post">';
 
 		settings_fields( self::OPTION_KEY );
 		do_settings_sections( self::MENU_SLUG );
 
-		submit_button( __( 'Save Changes', $this->textdomain ), 'primary', 'submit_options', true );
+		submit_button( __( 'Save Changes', self::TEXTDOMAIN ), 'primary', 'submit_options', true );
 
 		echo '</form>';
 		echo '</div>';
@@ -169,15 +201,7 @@ echo '<p>BlahblubbersuelzABOUT AvatarPlus</p>';
 		$use_extra_field = self::get_option( 'use_extra_field' );
 		$checked = checked( $use_extra_field, true, false );
 
-		printf( '<input type="checkbox" name="%s[use_extra_field]"%s> %s', self::OPTION_KEY, $checked, __( 'Use extra field in comment form', $this->textdomain ) );
-
-	}
-
-	public function expiration_field() {
-
-		$expiration = self::get_option( 'cache_expiration' );
-
-		printf( '<input type="text" size="10" name="%s[cache_expiration]" value="%s"> %s', self::OPTION_KEY, $expiration, __( 'Seconds', $this->textdomain ) );
+		printf( '<input type="checkbox" name="%s[use_extra_field]"%s> %s', self::OPTION_KEY, $checked, __( 'Use extra field in comment form', self::TEXTDOMAIN ) );
 
 	}
 

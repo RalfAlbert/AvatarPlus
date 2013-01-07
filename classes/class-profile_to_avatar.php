@@ -54,10 +54,11 @@ class Profile_To_Avatar
 	 * - else setup the url data and cache them
 	 * @param string $url URL to the user profile (GooglePlus or Facebook )
 	 * @param integer $size Size of the avatar image (needed for Google Plus)
+	 * @param integer $post_id Post ID for caching
 	 */
-	public function __construct( $url, $size ) {
+	public function __construct( $url, $size, $post_id = 0 ) {
 
-		$cached_urls = new Cache();
+		$cached_urls = new Cache( $post_id );
 
 		if( true === $cached_urls->is_cached( $url ) ) {
 

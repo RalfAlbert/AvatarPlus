@@ -34,16 +34,24 @@ class Cache
 	 */
 	public static $cache = array();
 
+	public $cachekey = '';
+
+	public $post_id = 0;
+
 	public static $chache_hits = 0;
 	public static $chache_miss = 0;
 
 	/**
 	 * Reading cache if internal cache is empty
 	 */
-	public function __construct() {
+	public function __construct( $post_id = 0 ) {
+
+		$this->post_id = filter_var( $post_id, FILTER_SANITIZE_NUMBER_INT );
+
+		$this->cachekey = Backend::get_option( 'cachingkey' );
 
 		if( empty( self::$cache ) )
-			self::$cache = $this->read_cache();
+			self::$cache = $this->read_cache( $this->post_id );
 
 	}
 
@@ -83,7 +91,7 @@ class Cache
 
 		self::$cache[ md5( $urldata->url ) ] = $urldata;
 
-		$this->write_cache();
+		$this->write_cache( $this->post_id );
 
 		return true;
 
@@ -93,11 +101,9 @@ class Cache
 	 * Read the external cache
 	 * @return array Cached url data
 	 */
-	public function read_cache() {
+	public function read_cache( $post_id ) {
 
-		$transientkey = Backend::get_option( 'transientkey' );
-
-		return get_site_transient( $transientkey );
+		return get_post_meta( $post_id, $this->cachekey, true );
 
 	}
 
@@ -105,12 +111,9 @@ class Cache
 	 * Writing the external cache
 	 * @return boolean Always true
 	 */
-	public function write_cache() {
+	public function write_cache( $post_id ) {
 
-		$transientkey = Backend::get_option( 'transientkey' );
-		$expiration   = Backend::get_option( 'cache_expiration' );
-
-		set_site_transient( $transientkey, self::$cache, $expiration );
+		update_post_meta( $post_id, $this->cachekey, self::$cache );
 
 		return true;
 
