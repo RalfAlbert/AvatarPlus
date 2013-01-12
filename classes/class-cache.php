@@ -34,11 +34,28 @@ class Cache
 	 */
 	public static $cache = array();
 
+	/**
+	 * Metakey for storing cache data in the options db
+	 * @var string
+	 */
 	public $cachekey = '';
 
+	/**
+	 * ID of the current post
+	 * @var integer
+	 */
 	public $post_id = 0;
 
+	/**
+	 * Number of cache hits
+	 * @var integer
+	 */
 	public static $chache_hits = 0;
+
+	/**
+	 * Number of cache missed
+	 * @var integer
+	 */
 	public static $chache_miss = 0;
 
 	/**
