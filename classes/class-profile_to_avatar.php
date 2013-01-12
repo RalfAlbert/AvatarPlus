@@ -365,6 +365,11 @@ class Profile_To_Avatar
 
 	}
 
+	/**
+	 * Convert a Twitter profile url into the Twitter avatar url
+	 * @param string $url Twitter profile url
+	 * @return string URL to the avatar image. If the profile url could not be converted, an empty string will be returned
+	 */
 	public function get_twitter_avatar_url( $url = '' ) {
 
 		if( empty( $url ) )

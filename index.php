@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.1.20130106
+ * @version    0.2.20130112
  * @link       http://wordpress.com
  */
 
