@@ -17,18 +17,53 @@ namespace AvatarPlus\Backend;
 
 class Backend
 {
+	/**
+	 * Constant for option key
+	 * @var string
+	 */
 	const OPTION_KEY = 'avatarplus_options';
 
+	/**
+	 * Constant for menu slug
+	 * @var string
+	 */
 	const MENU_SLUG = 'avatarplus';
 
+	/**
+	 * Constant for textdomain
+	 * @var string
+	 */
 	const TEXTDOMAIN = 'avatarplus';
 
+	/**
+	 * Basename of this file
+	 * @var string
+	 */
 	public $basename = '';
 
+	/**
+	 * Text files with translations
+	 * @var array
+	 */
 	public $html_files = array();
 
+	/**
+	 * Option values from db
+	 * @var array
+	 */
 	public static $options = array();
 
+	/**
+	 * Pagehook for the menu page
+	 * @var string
+	 */
+	public $pagehook = '';
+
+	/**
+	 * Constructor - Initialize the backend
+	 * - Initialize the settings api
+	 * - add menu page
+	 */
 	public function __construct() {
 
 		$this->basename = plugin_dir_path( dirname( __FILE__ ) );
@@ -40,6 +75,11 @@ class Backend
 
 	}
 
+	/**
+	 * Returns a single option or all options for this plugin from db
+	 * @param string $option_name Name of the option to retrieve (optional)
+	 * @return mixed Depending on the option name, the single option if available or all option values if no option name was given
+	 */
 	public static function get_option( $option_name = '' ) {
 
 		if( empty( self::$options ) )
@@ -53,6 +93,12 @@ class Backend
 
 	}
 
+	/**
+	 * Initialize the translation
+	 * - Load plugin textdomain
+	 * - Read translated text files for backend
+	 * @return boolean Always true
+	 */
 	public function init_translation() {
 
 		$lang_dir = $this->basename . 'languages';
@@ -85,11 +131,11 @@ class Backend
 	}
 
 	/**
-	 *
 	 * Initialise the WordPress Settings-API
-	 * Register the settings
-	 * Register the sections
-	 * Register the fields for each section
+	 * - Register the settings
+	 * - Register the sections
+	 * - Register the fields for each section
+	 * @return boolean Always true
 	 */
 	public function settings_api_init() {
 
@@ -136,18 +182,20 @@ class Backend
 
 		}
 
+		return true;
+
 	}
 
 	/**
-	 *
 	 * Add a page to the dashboard-menu
+	 * @return boolean Always true
 	 */
 	public function add_menu_page(){
 
 		if( ! current_user_can( 'manage_options' ) )
 			return false;
 
-		$pagehook = add_options_page(
+		$this->pagehook = add_options_page(
 			'AvatarPlus',
 			'AvatarPlus',
 			'manage_options',
@@ -158,35 +206,44 @@ class Backend
 		);
 
 		add_action(
-			'load-'.$pagehook,
+			'load-'.$this->pagehook,
 			array( $this, 'add_help_tab' ),
 			10,
 			0
 		);
 
+		return true;
+
 	}
 
+	/**
+	 * Add a help tab to the AvatarPlus options page
+	 * @return boolean True if the help tab was created, otherwise false
+	 */
 	public function add_help_tab() {
 
 		$screen = get_current_screen();
+
+		if( $screen->id !== $this->pagehook )
+			return false;
 
 		$screen->add_help_tab(
 				array(
 					'id'       => 'avatarplus',
 					'title'    => 'AvatarPlus',
 					'content'  => $this->get_text( 'help_tab_content' )
-//					'callback' => array( $this, 'help_tab_content' ) //optional function to callback
 				)
 		);
 
-	}
-
-	public function help_tab_content() {
-
-		echo $this->get_text( __FUNCTION__ );
+		return true;
 
 	}
 
+	/**
+	 * Validate saved options
+	 * @param array $input Options send
+	 * @return array $input Validated options
+	 */
 	public function options_validate( $input ) {
 
 		$options = self::get_option();
@@ -203,6 +260,11 @@ class Backend
 
 	}
 
+	/**
+	 * Return content of a text file
+	 * @param string $section Section/identifier of the text file
+	 * @return string $anonymous File content
+	 */
 	public function get_text( $section = '' ) {
 
 		if( empty( $section ) )
@@ -213,6 +275,10 @@ class Backend
 
 	}
 
+	/**
+	 * Main section of the settings page
+	 * @return boolean Always true
+	 */
 	public function main_section() {
 
 		if( ! current_user_can( 'manage_options' ) )
@@ -232,14 +298,26 @@ class Backend
 		echo '</form>';
 		echo '</div>';
 
+		return true;
+
 	}
 
+	/**
+	 * AvatarPlus settings section
+	 * @return boolean Always true
+	 */
 	public function aplus_section() {
 
 		echo $this->get_text( __FUNCTION__ );
 
+		return true;
+
 	}
 
+	/**
+	 * Callback for comment field settings
+	 * @return boolean Always true
+	 */
 	public function comment_field() {
 
 		$use_extra_field = self::get_option( 'use_extra_field' );
@@ -252,8 +330,14 @@ class Backend
 			__( 'Use extra field in comment form', self::TEXTDOMAIN )
 		);
 
+		return true;
+
 	}
 
+	/**
+	 * Callback for cache management field
+	 * @return boolean Always true
+	 */
 	public function cache_field() {
 
 		$cache_value   = self::get_option( 'cache_expiration_value' );
@@ -291,12 +375,22 @@ class Backend
 
 	}
 
+	/**
+	 * Google+ section
+	 * @return boolean Always true
+	 */
 	public function gplus_section() {
 
 		echo $this->get_text( __FUNCTION__ );
 
+		return true;
+
 	}
 
+	/**
+	 * Callback for Google+ field (G+ API key)
+	 * @return boolean Always true
+	 */
 	public function gplus_field() {
 
 		$apikey = self::get_option( 'gplus_apikey' );
@@ -307,7 +401,8 @@ class Backend
 			esc_attr( $apikey )
 		);
 
-	}
+		return true;
 
+	}
 
 }
