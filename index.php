@@ -130,11 +130,15 @@ function uninstall() {
 
 }
 
+/**
+ * Initialize the autoloader
+ * @return boolean Always true
+ */
 function init_autoloader() {
 
 	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
 
-	$config = new \stdClass();
+	$config                     = new \stdClass();
 	$config->abspath			= __FILE__;
 	$config->include_pathes		= array( '/lib', '/classes' );
 	$config->extensions			= array( '.php' );
@@ -147,6 +151,11 @@ function init_autoloader() {
 	return true;
 }
 
+/**
+ * Initialize the plugin
+ * - Init autoloader
+ * - Add hooks&filters on plugins loaded
+ */
 function plugin_init() {
 
 	init_autoloader();
@@ -184,13 +193,25 @@ function plugin_init() {
 		$backend = new Backend\Backend();
 
 
-	// debugging
+	// cleanup cache
 	add_action(
-		'wp_footer',
-		__NAMESPACE__ . '\get_cache_usage',
-		10,
-		0
+		'wp',
+		__NAMESPACE__ . '\check_cron_cleanup_cache'
 	);
+
+	add_action(
+		'avatarplus_cleanup_cache',
+		__NAMESPACE__ . '\cleanup_cache'
+	);
+
+	// debugging
+	if( defined( 'WP_DEBUG' ) && true === WP_DEBUG )
+		add_action(
+			'wp_footer',
+			__NAMESPACE__ . '\get_cache_usage',
+			10,
+			0
+		);
 
 }
 
@@ -333,10 +354,90 @@ function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
 }
 
+/**
+ * Simple debugging function
+ * Print out the cache usage to the footer
+ */
 function get_cache_usage() {
 
 	$cache = new Cache\Cache();
 
 	printf( '<p style="text-align:center">Cache hits: %d / Chache missed: %d</p>', $cache::$chache_hits, $cache::$chache_miss );
+
+}
+
+/**
+ * Test if the cron to cleanup the cach data is scheduled
+ * @return boolean
+ */
+function check_cron_cleanup_cache() {
+
+	if( ! wp_next_scheduled( 'cleanup_cache' ) ) {
+
+		wp_schedule_event( time(), 'daily', 'avatarplus_cleanup_cache');
+
+		return true;
+	}
+
+	return false;
+
+}
+
+/**
+ * Delete avatarplus caching data
+ * @return array Number of found post and deleted meta data (cache data)
+ */
+function cleanup_cache() {
+
+	global $wpdb;
+
+	// define time constants for WP < 3.5
+	// define additional constant MONTH_IN_SECONDS ( = 30 DAYS_IN_SECONDS )
+	if( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
+	if( ! defined( 'HOUR_IN_SECONDS' ) )   define( 'HOUR_IN_SECONDS',   60 * MINUTE_IN_SECONDS );
+	if( ! defined( 'DAY_IN_SECONDS' ) )    define( 'DAY_IN_SECONDS',    24 * HOUR_IN_SECONDS   );
+	if( ! defined( 'WEEK_IN_SECONDS' ) )   define( 'WEEK_IN_SECONDS',    7 * DAY_IN_SECONDS    );
+	if( ! defined( 'MONTH_IN_SECONDS' ) )  define( 'MONTH_IN_SECONDS',  30 * DAY_IN_SECONDS    );
+	if( ! defined( 'YEAR_IN_SECONDS' ) )   define( 'YEAR_IN_SECONDS',  365 * DAY_IN_SECONDS    );
+
+	$value   = Backend\Backend::get_option( 'cache_expiration_value' );
+	$periode = Backend\Backend::get_option( 'cache_expiration_periode' );
+	$metakey = Backend\Backend::get_option( 'cachingkey' );
+	$counter = array( 'found' => 0, 'deleted' => 0 ); 	// for testing & debugging
+
+	$transform = array(
+			'days'	=> DAY_IN_SECONDS,
+			'weeks'	=> WEEK_IN_SECONDS,
+			'month'	=> MONTH_IN_SECONDS,
+			'years'	=> YEAR_IN_SECONDS
+	);
+
+	$seconds = ( key_exists( $periode, $transform ) ) ?
+		(int) ($transform[$periode] * $value) : 0;
+
+	if( 0 === $seconds )
+		return false;
+
+	$timestamp = date( 'Y-m-d H:i:s', ( time() - $seconds ) );
+
+	$sql = "SELECT ID FROM {$wpdb->posts} WHERE post_date_gmt < %s";
+	$pids = $wpdb->get_results( $wpdb->prepare( $sql, $timestamp ) );
+
+	$counter['found'] = sizeof( $pids );
+
+	foreach( $pids as $pid ) {
+
+		$pm = get_post_meta( $pid->ID, $metakey, true );
+
+		if( ! empty( $pm ) ) {
+
+			delete_post_meta( $pid->ID, $metakey );
+			$counter['deleted']++;
+
+		}
+
+	}
+
+	return $counter;
 
 }

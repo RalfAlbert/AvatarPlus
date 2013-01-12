@@ -25,7 +25,7 @@ class Backend
 
 	public $basename = '';
 
-	public $html = array();
+	public $html_files = array();
 
 	public static $options = array();
 
@@ -68,7 +68,19 @@ class Backend
 			$lang_dir .= '/en/';
 
 
-		$this->html = glob( $lang_dir . '*.{htm,html}', GLOB_BRACE );
+		$html_files = glob( $lang_dir . '*.{htm,html}', GLOB_BRACE );
+
+		foreach( $html_files as $file ) {
+
+			preg_match( '#.+/([^/]+)\.html?$#Uuis', $file, $match );
+
+			if( isset( $match[1] ) && ! empty( $match[1] ) ) {
+				$this->html_files[ $match[1] ] = $match[0];
+			}
+
+		}
+
+		return true;
 
 	}
 
@@ -85,13 +97,14 @@ class Backend
 		$sections = array(
 			// section-id => title, callback
 			'aplus' => array( 'title' => __( 'AvatarPlus settings', self::TEXTDOMAIN), 'callback' => 'aplus_section' ),
-			'gplus'  => array( 'title' => __( 'GooglePlus', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
+			'gplus'  => array( 'title' => __( 'GooglePlus settings', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
 		);
 
 		// fields for the sections
 		$fields = array(
 			// field-id => in-section, title, callback
 			'field_1'	=> array( 'section' => 'aplus', 'title' => __( 'Extra field', self::TEXTDOMAIN ), 'callback' => 'comment_field' ),
+			'field_2'	=> array( 'section' => 'aplus', 'title' => __( 'Cache', self::TEXTDOMAIN ), 'callback' => 'cache_field' ),
 			'field_3'	=> array( 'section' => 'gplus', 'title' => __( 'GooglePlus API key', self::TEXTDOMAIN ), 'callback' => 'gplus_field' ),
 		);
 
@@ -134,7 +147,7 @@ class Backend
 		if( ! current_user_can( 'manage_options' ) )
 			return false;
 
-		add_options_page(
+		$pagehook = add_options_page(
 			'AvatarPlus',
 			'AvatarPlus',
 			'manage_options',
@@ -143,6 +156,34 @@ class Backend
 			false,
 			'bottom'
 		);
+
+		add_action(
+			'load-'.$pagehook,
+			array( $this, 'add_help_tab' ),
+			10,
+			0
+		);
+
+	}
+
+	public function add_help_tab() {
+
+		$screen = get_current_screen();
+
+		$screen->add_help_tab(
+				array(
+					'id'       => 'avatarplus',
+					'title'    => 'AvatarPlus',
+					'content'  => $this->get_text( 'help_tab_content' )
+//					'callback' => array( $this, 'help_tab_content' ) //optional function to callback
+				)
+		);
+
+	}
+
+	public function help_tab_content() {
+
+		echo $this->get_text( __FUNCTION__ );
 
 	}
 
@@ -154,8 +195,9 @@ class Backend
 
 		$input['use_extra_field'] = ( isset( $input['use_extra_field'] ) && 'on' === $input['use_extra_field'] ) ? true : false;
 
-		$input['cache_expiration'] = filter_var( $input['cache_expiration'], FILTER_SANITIZE_NUMBER_INT );
-
+		$input['cache_expiration_value'] = filter_var( $input['cache_expiration_value'], FILTER_SANITIZE_NUMBER_INT );
+		$input['cache_expiration_periode'] = ( in_array( (string) $input['cache_expiration_periode'], array( 'days', 'weeks', 'month', 'years' ) ) ) ?
+			(string) $input['cache_expiration_periode'] : 'days';
 
 		return $input;
 
@@ -166,6 +208,8 @@ class Backend
 		if( empty( $section ) )
 			return false;
 
+		return ( isset( $this->html_files[ $section ] ) && file_exists( $this->html_files[ $section ] ) ) ?
+			file_get_contents( $this->html_files[ $section ] ) : false;
 
 	}
 
@@ -176,7 +220,7 @@ class Backend
 
 		echo '<div class="wrap"><h1>AvatarPlus</h1>';
 
-		echo '<p>Welcome to AvatarPlus, the flexible avatar plugin. This plugin allow you to use profile images from Google Plus, Facebook and Twitter as avatar images.</p>';
+		echo $this->get_text( __FUNCTION__ );
 
 		echo '<form action="options.php" method="post">';
 
@@ -192,7 +236,7 @@ class Backend
 
 	public function aplus_section() {
 
-		echo '<p>Some words about the AvatarPlus settings...</p>';
+		echo $this->get_text( __FUNCTION__ );
 
 	}
 
@@ -201,13 +245,55 @@ class Backend
 		$use_extra_field = self::get_option( 'use_extra_field' );
 		$checked = checked( $use_extra_field, true, false );
 
-		printf( '<input type="checkbox" name="%s[use_extra_field]"%s> %s', self::OPTION_KEY, $checked, __( 'Use extra field in comment form', self::TEXTDOMAIN ) );
+		printf(
+			'<input type="checkbox" name="%1$s[use_extra_field]" id="%1$s-use_extra_field"%2$s> %3$s',
+			self::OPTION_KEY,
+			$checked,
+			__( 'Use extra field in comment form', self::TEXTDOMAIN )
+		);
+
+	}
+
+	public function cache_field() {
+
+		$cache_value   = self::get_option( 'cache_expiration_value' );
+		$cache_periode = self::get_option( 'cache_expiration_periode' );
+
+		printf(
+			'<input type="text" size="5" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s">',
+			self::OPTION_KEY,
+			esc_attr( $cache_value )
+		);
+
+		$option_values = array(
+			'days'   => __( 'Day(s)', self::TEXTDOMAIN ),
+			'weeks'  => __( 'Week(s)', self::TEXTDOMAIN ),
+			'months' => __( 'Month(s)', self::TEXTDOMAIN ),
+			'years'  => __( 'Year(s)', self::TEXTDOMAIN )
+		);
+
+		$options_output = '';
+
+		$select_skeleton = '<select name="%1$s[cache_expiration_periode]" id="%1$scache_periode">%2$s</select>';
+
+		foreach( $option_values as $value => $text ) {
+
+			$selected = ( $value === $cache_periode ) ?
+				' SELECTED' : '';
+
+			$options_output .= sprintf( "\t<option value=\"%s\"%s>%s</option>\n", $value, $selected, $text );
+
+		}
+
+		printf( $select_skeleton, self::OPTION_KEY, $options_output );
+
+		return true;
 
 	}
 
 	public function gplus_section() {
 
-		echo '<p>Some words about the GooglePlus API key...</p>';
+		echo $this->get_text( __FUNCTION__ );
 
 	}
 
@@ -215,7 +301,11 @@ class Backend
 
 		$apikey = self::get_option( 'gplus_apikey' );
 
-		printf( '<input type="text" size="50" name="%s[gplus_apikey]" value="%s">', self::OPTION_KEY, esc_attr( $apikey ) );
+		printf(
+			'<input type="text" size="50" name="%1$s[gplus_apikey]" id="%1$s-gplus_apikey" value="%2$s">',
+			self::OPTION_KEY,
+			esc_attr( $apikey )
+		);
 
 	}
 
