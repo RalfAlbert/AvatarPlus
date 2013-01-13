@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus\Cache
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.1.20130103
+ * @version    0.1.20130112
  * @link       http://wordpress.com
  */
 
@@ -81,8 +81,6 @@ class Cache
 
 		if( isset( self::$cache[ md5( $url ) ] ) )
 			self::$chache_hits++;
-		else
-			self::$chache_miss++;
 
 		return isset( self::$cache[ md5( $url ) ] );
 
@@ -106,7 +104,13 @@ class Cache
 	 */
 	public function cache_url( \stdClass $urldata ) {
 
+		// do not cache data if no avatar is available
+		if( empty( $urldata->avatar_url ) )
+			return false;
+
 		self::$cache[ md5( $urldata->url ) ] = $urldata;
+
+		self::$chache_miss++;
 
 		$this->write_cache( $this->post_id );
 

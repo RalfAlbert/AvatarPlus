@@ -101,20 +101,24 @@ class Backend
 	 */
 	public function init_translation() {
 
-		$lang_dir = $this->basename . 'languages';
+		// load_plugin_textdomain need a different basename
+		// _td = load_plugin_textdomain()
+		// _tf = load text files
+		$lang_dir_td = basename( $this->basename ) . '/languages';
+		$lang_dir_tf = $this->basename . '/languages';
 
-		load_plugin_textdomain( self::TEXTDOMAIN, false, $lang_dir );
+		load_plugin_textdomain( self::TEXTDOMAIN, false, $lang_dir_td );
 
 		$lang = ( defined( 'WPLANG') ) ?
 		$lang = substr( WPLANG, 0, 2 ) : 'en';
 
-		if( is_dir( $lang_dir . '/' . $lang ) )
-			$lang_dir .= '/' . $lang . '/';
+		if( is_dir( $lang_dir_tf . '/' . $lang ) )
+			$lang_dir_tf .= '/' . $lang . '/';
 		else
-			$lang_dir .= '/en/';
+			$lang_dir_tf .= '/en/';
 
 
-		$html_files = glob( $lang_dir . '*.{htm,html}', GLOB_BRACE );
+		$html_files = glob( $lang_dir_tf . '*.{htm,html}', GLOB_BRACE );
 
 		foreach( $html_files as $file ) {
 
@@ -143,7 +147,7 @@ class Backend
 		$sections = array(
 			// section-id => title, callback
 			'aplus' => array( 'title' => __( 'AvatarPlus settings', self::TEXTDOMAIN), 'callback' => 'aplus_section' ),
-			'gplus'  => array( 'title' => __( 'GooglePlus settings', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
+			'gplus'  => array( 'title' => __( 'Google+ settings', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
 		);
 
 		// fields for the sections
@@ -151,7 +155,7 @@ class Backend
 			// field-id => in-section, title, callback
 			'field_1'	=> array( 'section' => 'aplus', 'title' => __( 'Extra field', self::TEXTDOMAIN ), 'callback' => 'comment_field' ),
 			'field_2'	=> array( 'section' => 'aplus', 'title' => __( 'Cache', self::TEXTDOMAIN ), 'callback' => 'cache_field' ),
-			'field_3'	=> array( 'section' => 'gplus', 'title' => __( 'GooglePlus API key', self::TEXTDOMAIN ), 'callback' => 'gplus_field' ),
+			'field_3'	=> array( 'section' => 'gplus', 'title' => __( 'Google+ API key', self::TEXTDOMAIN ), 'callback' => 'gplus_field' ),
 		);
 
 		// register settings
@@ -344,7 +348,7 @@ class Backend
 		$cache_periode = self::get_option( 'cache_expiration_periode' );
 
 		printf(
-			'<input type="text" size="5" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s">',
+			'<input type="text" size="1" style="text-align:right" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s">',
 			self::OPTION_KEY,
 			esc_attr( $cache_value )
 		);

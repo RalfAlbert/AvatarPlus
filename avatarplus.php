@@ -16,12 +16,12 @@
 /**
  * Plugin Name:	AvatarPlus
  * Plugin URI:	http://yoda.neun12.de
- * Description:	Replacing the standard avatar in comments with a GooglePlus, Facebook or Twitter avatar if a user enter a profile url
+ * Description:	Replacing the standard avatar in comments with a Google+, Facebook or Twitter avatar if a user enter a profile url
  * Version: 	0.2.20130112
  * Author: 		Ralf Albert
  * Author URI: 	http://yoda.neun12.de
- * Text Domain:
- * Domain Path:
+ * Text Domain: avatarplus
+ * Domain Path: /languages
  * Network:
  * License:		GPLv3
  */
@@ -80,9 +80,11 @@ function activate() {
 
 	// default options
 	$options = array(
-		'metakey'          => 'avatarplus_profile_url',
-		'cachingkey'       => 'avatarplus_caching',
-		'use_extra_field'  => false,
+		'metakey'                  => 'avatarplus_profile_url',
+		'cachingkey'               => 'avatarplus_caching',
+		'use_extra_field'          => false,
+		'cache_expiration_value'   => 0,
+		'cache_expiration_periode' => 'days'
 	);
 
 	add_option( Backend\Backend::OPTION_KEY, $options );
@@ -101,9 +103,6 @@ function deactivate() {
 	// delete caching data
 	$sql = "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s;";
 	$wpdb->query( $wpdb->prepare( $sql, Backend\Backend::get_option( 'cachingkey' ) ) );
-
-// 	init_autoloader();
-// 	delete_option( Backend\Backend::OPTION_KEY );
 
 }
 
@@ -259,12 +258,19 @@ function save_comment_meta_data( $comment_id ) {
 
 	$metakey = Backend\Backend::get_option( 'metakey' );
 
-	add_comment_meta(
-		$comment_id,
-		$metakey,
-		filter_input( INPUT_POST, $metakey, FILTER_SANITIZE_URL ),
-		false
-	);
+	$url = filter_input( INPUT_POST, $metakey, FILTER_SANITIZE_URL );
+
+	// do not save empty urls
+	if( ! empty( $url ) ) {
+
+		add_comment_meta(
+			$comment_id,
+			$metakey,
+			$url,
+			false
+		);
+
+	}
 
 }
 
@@ -372,11 +378,12 @@ function get_cache_usage() {
  */
 function check_cron_cleanup_cache() {
 
-	if( ! wp_next_scheduled( 'cleanup_cache' ) ) {
+	if( ! wp_next_scheduled( 'avatarplus_cleanup_cache' ) ) {
 
-		wp_schedule_event( time(), 'daily', 'avatarplus_cleanup_cache');
+		wp_schedule_event( time(), 'daily', 'avatarplus_cleanup_cache' );
 
 		return true;
+
 	}
 
 	return false;

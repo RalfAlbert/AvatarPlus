@@ -217,7 +217,9 @@ class WP_Autoloader
 		if( FALSE === strpos( $nsclass, '\\' ) )
 			return $nsclass;
 
-		return array_pop( explode( '\\', $nsclass ) );
+		$ns_array = explode( '\\', $nsclass );
+
+		return array_pop( $ns_array );
 
 	}
 

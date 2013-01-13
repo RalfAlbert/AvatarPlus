@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus\Profile_To_Avatar
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.1.20130103
+ * @version    0.1.20130112
  * @link       http://wordpress.com
  */
 
@@ -37,10 +37,10 @@ class Profile_To_Avatar
 	public $url = null;
 
 	/**
-	 * Counter for recursive calls
+	 * Counter for redirections
 	 * @var integer
 	 */
-	public $recursive_count = 0;
+	public $redirection_count = 0;
 
 	/**
 	 * Caching for original url in case of recursive calls
@@ -95,7 +95,8 @@ class Profile_To_Avatar
 			$data->url = $data->location;
 			$data->is_redirected = false;
 
-			$this->recursive_count++;
+			// max number of redirections
+			$this->redirection_count = 5;
 
 		} else {
 
@@ -118,7 +119,10 @@ class Profile_To_Avatar
 			return null;
 
 		// detect redirection and  test if the url is reachable
-		$remote = wp_remote_get( $data->url, array( 'sslverify' => false, 'redirection' => 0 ) );
+		// on the first run, $this->redirecttion_count is 0.
+		// This will return the http headers of the url and we
+		// can detect if it is a redirection or not
+		$remote = wp_remote_get( $data->url, array( 'sslverify' => false, 'redirection' => $this->redirection_count ) );
 
 		// if the url is valid, but is not reachable, stop setup here
 		if( is_wp_error( $remote ) ) {
@@ -167,9 +171,8 @@ class Profile_To_Avatar
 
 		}
 
-		// if the url is a redirection and the redirection limit is not reached,
-		// call setup_url() recursive to resolve the redirection
-		if( true === $data->is_redirected && 5 > $this->recursive_count ) {
+		// if the url is a redirection, call setup_url() recursive to resolve the redirection
+		if( true === $data->is_redirected ) {
 
 			// save the original url
 			if( empty( $this->original_url ) )
