@@ -1,18 +1,18 @@
-=== AvatarPlus ===
+# AvatarPlus #
 
-Contributors: Ralf Albert
-Donate link: https://github.com/RalfAlbert/AvatarPlus
-Tags: comments, avatar
-Requires at least: 3.5
-Tested up to: 3.5
-Stable tag: 0.2
-License: GPLv3
-License URI: http://www.gnu.org/licenses/gpl-3.0.html
+**Contributors:** Ralf Albert
+**Donate link:** https://github.com/RalfAlbert/AvatarPlus
+**Tags:** comments, avatar
+**Requires at least:** 3.5
+**Tested up to:** 3.5
+**Stable tag:** 0.2
+**License:** GPLv3
+**License URI:** http://www.gnu.org/licenses/gpl-3.0.html
 
 AvatarPlus erlaubt es Benutzern ein Profilbild von einem der sozialen Netzwerke Google+, Facebook oder Twitter anstatt des Standardavatars von Gravatar zu verwenden.
 AvatarPlus setzt zwingend PHP ab der Version 5.3 voraus!
 
-== Beschreibung ==
+## Beschreibung ##
 
 AvatarPlus erlaubt die Einbindung der Profilbilder von Google+, Facebook und Twitter in den Kommentarbereich. Da immer mehr Benutzer auf die Angabe einer E-Mail Adresse verzichten und stattdessen lieber nur die URL zu ihren Profil in einem sozialen Netzwerk angeben möchten, fehlt in WordPress die Möglichkeit den Kommentarbereich mit Avataren bzw. Profilbildern auszustatten. Hier springt AvatarPlus ein und ermöglicht es auf die zwingende Angabe einer E-Mail Adresse zu verzichten und dennoch ein Avatar bzw. Profilbild einzubinden.
 
@@ -22,7 +22,7 @@ AvatarPlus geht möglichst schonend mit den Ressourcen um und speichert die URLs
 
 AvatarPlus ist nach den "Best Practices" für WordPress Plugins geschrieben und nutzt alle Möglichkeiten um hochwertigen PHP-Code zu gewährleisten.
 
-== Installation ==
+## Installation ##
 
 1. Installieren und aktivieren Sie AvatarPlus über den WordPress Admin-Bereich
 2. Nehmen Sie ggf. die Einstellungen für AvatarPlus im Admin-Bereich unter den Menüpunkt Einstellungen - AvatarPlus vor
@@ -35,27 +35,27 @@ Alternativ können Sie das Plugin auch manuell installieren:
 4. Aktivieren Sie das Plugin im Admin-Bereich des Blogs
 5. Nehmen Sie ggf. die Einstellungen für AvatarPlus im Admin-Bereich unter den Menüpunkt Einstellungen - AvatarPlus vor
 
-== Regelmäßig gestellte Fragen ==
+## Regelmäßig gestellte Fragen ##
 
  - Bisher sind keine Fragen bekannt.
 
-== Screenshots ==
+## Screenshots ##
 
 
-== Changelog ==
+## Changelog ##
 
-= 0.2 =
+### 0.2 ###
 
 * Erste öffentliche Version
 
-= 0.1 =
+### 0.1 ###
 
 * erste Entwicklerversion
 
-== Upgrade Notice ==
+## Upgrade Notice ##
 
 
-== Zusätzlicher Abschnitt ==
+## Zusätzlicher Abschnitt ##
 
 **Datenschutzhinweis**
 
