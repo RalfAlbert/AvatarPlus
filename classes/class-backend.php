@@ -347,10 +347,14 @@ class Backend
 		$cache_value   = self::get_option( 'cache_expiration_value' );
 		$cache_periode = self::get_option( 'cache_expiration_periode' );
 
+		$disabled = ( defined( 'DISABLE_WP_CRON' ) && true == DISABLE_WP_CRON ) ?
+			' disabled' : '';
+
 		printf(
-			'<input type="text" size="1" style="text-align:right" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s">',
+			'<input type="text" size="1" style="text-align:right" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s"%3$s>',
 			self::OPTION_KEY,
-			esc_attr( $cache_value )
+			esc_attr( $cache_value ),
+			$disabled
 		);
 
 		$option_values = array(
@@ -362,7 +366,7 @@ class Backend
 
 		$options_output = '';
 
-		$select_skeleton = '<select name="%1$s[cache_expiration_periode]" id="%1$scache_periode">%2$s</select>';
+		$select_skeleton = '<select name="%1$s[cache_expiration_periode]" id="%1$scache_periode"%3$s>%2$s</select>';
 
 		foreach( $option_values as $value => $text ) {
 
@@ -373,7 +377,10 @@ class Backend
 
 		}
 
-		printf( $select_skeleton, self::OPTION_KEY, $options_output );
+		printf( $select_skeleton, self::OPTION_KEY, $options_output, $disabled );
+
+		if( ! empty( $disabled ) )
+			printf( '<div class="error-message"><p>%s</p></div>', __( "Your WordPress Cronjobs are disabled. The cache won't be deleted!", self::TEXTDOMAIN ) );
 
 		return true;
 
