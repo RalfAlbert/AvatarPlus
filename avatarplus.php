@@ -370,7 +370,7 @@ function get_cache_usage() {
 
 	$cache = new Cache\Cache();
 
-	printf( '<p style="text-align:center">Cache hits: %d / Chache missed: %d</p>', $cache::$chache_hits, $cache::$chache_miss );
+	printf( '<p style="text-align:center"><strong>AvatarPlus</strong>: Cache hits: %d / Chache missed: %d</p>', $cache::$chache_hits, $cache::$chache_miss );
 
 }
 
