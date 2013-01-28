@@ -317,7 +317,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 		new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
 
 	// reset to default avatar if faild getting avatar from profile url
-	if( false === $aplus_avatar->is_url_reachable() )
+	if( false === $aplus_avatar->is_url_supported() )
 		return $avatar;
 
 	$aplus_avatar_html = replace_avatar_html( $avatar, $aplus_avatar->get_avatar_url( $size ), $size, $alt );

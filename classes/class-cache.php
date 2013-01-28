@@ -79,7 +79,7 @@ class Cache
 	 */
 	public function is_cached( $url = '' ) {
 
-		if( isset( self::$cache[ md5( $url ) ] ) )
+		if( true === isset( self::$cache[ md5( $url ) ] ) )
 			self::$chache_hits++;
 
 		return isset( self::$cache[ md5( $url ) ] );
@@ -103,10 +103,6 @@ class Cache
 	 * @return boolean Always true
 	 */
 	public function cache_url( \stdClass $urldata ) {
-
-		// do not cache data if no avatar is available
-		if( empty( $urldata->avatar_url ) )
-			return false;
 
 		self::$cache[ md5( $urldata->url ) ] = $urldata;
 

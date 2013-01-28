@@ -37,7 +37,8 @@ class Profile_To_Avatar
 	public $url = null;
 
 	/**
-	 * Counter for redirections
+	 * Maximum number of redirections
+	 * Set the inital value to 0 to detect redirections
 	 * @var integer
 	 */
 	public $redirection_count = 0;
@@ -46,7 +47,7 @@ class Profile_To_Avatar
 	 * Caching for original url in case of recursive calls
 	 * @var string
 	 */
-	public $original_url    = '';
+	public $original_url = '';
 
 	/**
 	 * Constructor setup the avatar url
@@ -58,11 +59,11 @@ class Profile_To_Avatar
 	 */
 	public function __construct( $url, $size, $post_id = 0 ) {
 
-		$cached_urls = new Cache( $post_id );
+		$cache = new Cache( $post_id );
 
-		if( true === $cached_urls->is_cached( $url ) ) {
+		if( true === $cache->is_cached( $url ) ) {
 
-			$this->url = $cached_urls->get_cached_url( $url );
+			$this->url = $cache->get_cached_url( $url );
 
 		} else {
 
@@ -71,9 +72,10 @@ class Profile_To_Avatar
 			if( isset( $this->url->location ) && ! empty( $this->url->location ) )
 				$this->url->avatar_url = $this->get_avatar_url( $size );
 
-			$cached_urls->cache_url( $this->url );
+			$cache->cache_url( $this->url );
 
 		}
+
 
 	}
 
@@ -95,7 +97,7 @@ class Profile_To_Avatar
 			$data->url = $data->location;
 			$data->is_redirected = false;
 
-			// max number of redirections
+			// reset maximum number of redirections to the default value of wp_remote_get()
 			$this->redirection_count = 5;
 
 		} else {
@@ -148,7 +150,7 @@ class Profile_To_Avatar
 
 				break;
 
-				// found & ok
+			// found & ok
 			case 200:
 
 				$data->location       = $data->url;
@@ -157,13 +159,15 @@ class Profile_To_Avatar
 
 				break;
 
-				// all other status codes
+			// all other status codes
+			case 404:
 			default:
 
 				// Facebook return a 404 status code if the user is not logged in.
 				// We have to fix that. Assuming all Facebook urls are reachable,
 				// we simply set 'is_reachable' to true if it is a Facebook url.
 				// Maybe I fix it in a future version
+				$data->location       = $data->url;
 				$data->is_redirected  = false;
 				$data->is_reachable   = $this->is_facebook( $data->url );
 
@@ -172,7 +176,8 @@ class Profile_To_Avatar
 		}
 
 		// if the url is a redirection, call setup_url() recursive to resolve the redirection
-		if( true === $data->is_redirected ) {
+		// but only on the first run!
+		if( true === $data->is_redirected && 0 === $this->redirection_count ) {
 
 			// save the original url
 			if( empty( $this->original_url ) )
@@ -188,6 +193,17 @@ class Profile_To_Avatar
 
 
 		return $data;
+
+	}
+
+	/**
+	 * Returns the service name if the url is supported, else false
+	 * @return string|boolean $service The service name if the url is supported, else false
+	 */
+	public function is_url_supported() {
+
+		return ( isset( $this->url->service ) || 'unknown' !== $this->url->service ) ?
+			$this->url->service : false;
 
 	}
 
@@ -255,8 +271,8 @@ class Profile_To_Avatar
 
 				case 'twitter.com':
 					$avatar_url = $this->get_twitter_avatar_url( $url );
-					$this->service = 'twitter';
-				break;
+					$this->url->service = 'twitter';
+					break;
 
 				default:
 					$avatar_url = ''; // unknown service
