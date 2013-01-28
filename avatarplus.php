@@ -71,10 +71,10 @@ function activate() {
 
 	init_autoloader();
 
-	new EnvCheck\WP_Environment_Check(
+	$env = new EnvCheck\WP_Environment_Check(
 		array(
 			'php' => '5.3',
-			'wp'  => '3.5'
+			'wp'  => '3.5',
 		)
 	);
 
@@ -84,7 +84,7 @@ function activate() {
 		'cachingkey'               => 'avatarplus_caching',
 		'use_extra_field'          => false,
 		'cache_expiration_value'   => 0,
-		'cache_expiration_periode' => 'days'
+		'cache_expiration_periode' => 'days',
 	);
 
 	add_option( Backend\Backend::OPTION_KEY, $options );
@@ -161,7 +161,7 @@ function plugin_init() {
 
 	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
 
-	if( false !== $use_extra_field ) {
+	if ( false !== $use_extra_field ) {
 
 		// add the field to comment form
 		add_filter(
@@ -188,12 +188,12 @@ function plugin_init() {
 	);
 
 	// create menupage
-	if( is_admin() )
+	if ( is_admin() )
 		$backend = new Backend\Backend();
 
 
 	// cleanup cache
-	if( ! defined( 'DISABLE_WP_CRON' ) || true != DISABLE_WP_CRON ) {
+	if ( ! defined( 'DISABLE_WP_CRON' ) || true != DISABLE_WP_CRON ) {
 		add_action(
 			'wp',
 			__NAMESPACE__ . '\check_cron_cleanup_cache'
@@ -206,7 +206,7 @@ function plugin_init() {
 	);
 
 	// debugging
-	if( defined( 'WP_DEBUG' ) && true === WP_DEBUG )
+	if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG )
 		add_action(
 			'wp_footer',
 			__NAMESPACE__ . '\get_cache_usage',
@@ -225,14 +225,13 @@ function plugin_init() {
  */
 function add_comment_field( $default_fields ) {
 
-	if( ! is_array( $default_fields ) || empty( $default_fields ) )
+	if ( ! is_array( $default_fields ) || empty( $default_fields ) )
 		return $default_fields;
 
 	$metakey    = Backend\Backend::get_option( 'metakey' );
 	$label_text = apply_filters( 'avatarplus_labeltext', 'Profile URL' );
 
-	$comment_field_template =
-	'<p class="comment-form-author">
+	$comment_field_template = '<p class="comment-form-author">
 		<label for="%label%">%label_text%</label>
 		<input id="%label%" name="%label%" size="30" type="text" />
 	</p>';
@@ -250,11 +249,12 @@ function add_comment_field( $default_fields ) {
  * Save the data from extra comment field
  *
  * @param integer $comment_id ID of the current comment
+ * @return boolean True on success, false on error.
  */
 function save_comment_meta_data( $comment_id ) {
 
-	if( empty( $comment_id ) )
-		return $comment_id;
+	if ( empty( $comment_id ) )
+		return false;
 	else
 		$comment_id = (int) $comment_id;
 
@@ -263,8 +263,7 @@ function save_comment_meta_data( $comment_id ) {
 	$url = filter_input( INPUT_POST, $metakey, FILTER_SANITIZE_URL );
 
 	// do not save empty urls
-	if( ! empty( $url ) ) {
-
+	if ( ! empty( $url ) ) {
 		add_comment_meta(
 			$comment_id,
 			$metakey,
@@ -272,7 +271,10 @@ function save_comment_meta_data( $comment_id ) {
 			false
 		);
 
+		return true;
 	}
+
+	return false;
 
 }
 
@@ -287,11 +289,11 @@ function save_comment_meta_data( $comment_id ) {
  * @param string $alt Alternative text to use in image tag. Defaults to 'AvatarPlus'
  * @return string $aplus_avatar <img>-tag with avatar
  */
-function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
+function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $alt = '' ) {
 
 	global $comment, $post;
 
-	if( empty( $comment ) )
+	if ( empty( $comment ) )
 		return $comment;
 	else
 		$comment = (object) $comment;
@@ -313,11 +315,11 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
 	$profile_url = get_comment_meta( $comment_id, $metakey, true );
 
 	$aplus_avatar = ( ! empty( $profile_url ) ) ?
-		new Url\Profile_To_Avatar( $profile_url, $size, $post->ID ) :
-		new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
+		$profile2avatar = new Url\Profile_To_Avatar( $profile_url, $size, $post->ID ) :
+		$profile2avatar = new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
 
 	// reset to default avatar if faild getting avatar from profile url
-	if( false === $aplus_avatar->is_url_reachable() )
+	if ( false === $aplus_avatar->is_url_reachable() )
 		return $avatar;
 
 	$aplus_avatar_html = replace_avatar_html( $avatar, $aplus_avatar->get_avatar_url( $size ), $size, $alt );
@@ -336,23 +338,23 @@ function get_aplus_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
  */
 function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
-	if( empty( $html ) )
+	if ( empty( $html ) )
 		return '';
 
 	$search_and_replace = array(
 			'src'    => 'url',
 			'alt'    => 'alt',
 			'width'  => 'size',
-			'height' => 'size'
+			'height' => 'size',
 	);
 
-	foreach( $search_and_replace as $attrib => $var ) {
+	foreach ( $search_and_replace as $attrib => $var ) {
 
-		if( ! empty( $$var ) )
+		if ( ! empty( $$var ) )
 			$html = preg_replace(
-					sprintf( '#%s=(["|\'])(.*)(["|\'])#Uuis', $attrib ),
-					sprintf( '%s=${1}%s${3}', $attrib, $$var ),
-					$html
+				sprintf( '#%s=(["|\'])(.*)(["|\'])#Uuis', $attrib ),
+				sprintf( '%s=${1}%s${3}', $attrib, $$var ),
+				$html
 			);
 
 
@@ -380,7 +382,7 @@ function get_cache_usage() {
  */
 function check_cron_cleanup_cache() {
 
-	if( ! wp_next_scheduled( 'avatarplus_cleanup_cache' ) ) {
+	if ( ! wp_next_scheduled( 'avatarplus_cleanup_cache' ) ) {
 
 		wp_schedule_event( time(), 'daily', 'avatarplus_cleanup_cache' );
 
@@ -402,12 +404,12 @@ function cleanup_cache() {
 
 	// define time constants for WP < 3.5
 	// define additional constant MONTH_IN_SECONDS ( = 30 DAYS_IN_SECONDS )
-	if( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
-	if( ! defined( 'HOUR_IN_SECONDS' ) )   define( 'HOUR_IN_SECONDS',   60 * MINUTE_IN_SECONDS );
-	if( ! defined( 'DAY_IN_SECONDS' ) )    define( 'DAY_IN_SECONDS',    24 * HOUR_IN_SECONDS   );
-	if( ! defined( 'WEEK_IN_SECONDS' ) )   define( 'WEEK_IN_SECONDS',    7 * DAY_IN_SECONDS    );
-	if( ! defined( 'MONTH_IN_SECONDS' ) )  define( 'MONTH_IN_SECONDS',  30 * DAY_IN_SECONDS    );
-	if( ! defined( 'YEAR_IN_SECONDS' ) )   define( 'YEAR_IN_SECONDS',  365 * DAY_IN_SECONDS    );
+	if ( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
+	if ( ! defined( 'HOUR_IN_SECONDS' ) )   define( 'HOUR_IN_SECONDS',   60 * MINUTE_IN_SECONDS );
+	if ( ! defined( 'DAY_IN_SECONDS' ) )    define( 'DAY_IN_SECONDS',    24 * HOUR_IN_SECONDS   );
+	if ( ! defined( 'WEEK_IN_SECONDS' ) )   define( 'WEEK_IN_SECONDS',    7 * DAY_IN_SECONDS    );
+	if ( ! defined( 'MONTH_IN_SECONDS' ) )  define( 'MONTH_IN_SECONDS',  30 * DAY_IN_SECONDS    );
+	if ( ! defined( 'YEAR_IN_SECONDS' ) )   define( 'YEAR_IN_SECONDS',  365 * DAY_IN_SECONDS    );
 
 	$value   = Backend\Backend::get_option( 'cache_expiration_value' );
 	$periode = Backend\Backend::get_option( 'cache_expiration_periode' );
@@ -418,33 +420,30 @@ function cleanup_cache() {
 			'days'	=> DAY_IN_SECONDS,
 			'weeks'	=> WEEK_IN_SECONDS,
 			'month'	=> MONTH_IN_SECONDS,
-			'years'	=> YEAR_IN_SECONDS
+			'years'	=> YEAR_IN_SECONDS,
 	);
 
 	$seconds = ( key_exists( $periode, $transform ) ) ?
 		(int) ($transform[$periode] * $value) : 0;
 
-	if( 0 === $seconds )
+	if ( 0 === $seconds )
 		return false;
 
 	$timestamp = date( 'Y-m-d H:i:s', ( time() - $seconds ) );
 
-	$sql = "SELECT ID FROM {$wpdb->posts} WHERE post_date_gmt < %s";
+	$sql  = "SELECT ID FROM {$wpdb->posts} WHERE post_date_gmt < %s";
 	$pids = $wpdb->get_results( $wpdb->prepare( $sql, $timestamp ) );
 
 	$counter['found'] = sizeof( $pids );
 
-	foreach( $pids as $pid ) {
-
+	foreach ( $pids as $pid ) {
 		$pm = get_post_meta( $pid->ID, $metakey, true );
 
-		if( ! empty( $pm ) ) {
+		if ( ! empty( $pm ) ) {
 
 			delete_post_meta( $pid->ID, $metakey );
 			$counter['deleted']++;
-
 		}
-
 	}
 
 	return $counter;
