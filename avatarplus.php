@@ -193,10 +193,12 @@ function plugin_init() {
 
 
 	// cleanup cache
-	add_action(
+	if ( ! defined( 'DISABLE_WP_CRON' ) || true != DISABLE_WP_CRON ) {
+		add_action(
 		'wp',
 		__NAMESPACE__ . '\check_cron_cleanup_cache'
-	);
+			);
+	}
 
 	add_action(
 		'avatarplus_cleanup_cache',
