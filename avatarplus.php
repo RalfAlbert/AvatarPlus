@@ -83,7 +83,7 @@ function activate() {
 		'metakey'                  => 'avatarplus_profile_url',
 		'cachingkey'               => 'avatarplus_caching',
 		'use_extra_field'          => false,
-		'cache_expiration_value'   => 0,
+		'cache_expiration_value'   => 30,
 		'cache_expiration_periode' => 'days',
 	);
 
