@@ -37,29 +37,23 @@ If you want to install the plugin manually:
 4. Activate the plugin.
 5. If needed, adjust the settings under "Settings" » "AvatarPlus".
 
-== Frequently Asked Questions ==
-
- - No known questions yet
-
 == Screenshots ==
 
- - No screenshots available yet
+ 1. AvatarPlus backend
 
 == Changelog ==
 
-= 0.2.1 =
+= 0.3 =
+
 * Fix small caching problems 
 
 = 0.2 =
+
 * First public version
 
 = 0.1 =
 
 * First developer version
-
-== Upgrade Notice ==
-
- - No upgrades available
 
 == Arbitrary section ==
 
