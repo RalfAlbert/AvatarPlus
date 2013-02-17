@@ -17,7 +17,7 @@
  * Plugin Name:	AvatarPlus
  * Plugin URI:	http://yoda.neun12.de
  * Description:	Replacing the standard avatar in comments with a Google+, Facebook or Twitter avatar if a user enter a profile url
- * Version: 	0.2.20130112
+ * Version: 	0.2.1
  * Author: 		Ralf Albert
  * Author URI: 	http://yoda.neun12.de
  * Text Domain: avatarplus
