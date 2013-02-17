@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus\Backend
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.1.20130112
+ * @version    20130112
  * @link       http://wordpress.com
  */
 
@@ -109,8 +109,8 @@ class Backend
 
 		load_plugin_textdomain( self::TEXTDOMAIN, false, $lang_dir_td );
 
-		$lang = ( defined( 'WPLANG') ) ?
-		$lang = substr( WPLANG, 0, 2 ) : 'en';
+		$lang = ( defined( 'WPLANG' ) ) ?
+		    substr( WPLANG, 0, 2 ) : 'en';
 
 		if( is_dir( $lang_dir_tf . '/' . $lang ) )
 			$lang_dir_tf .= '/' . $lang . '/';
@@ -120,14 +120,12 @@ class Backend
 
 		$html_files = glob( $lang_dir_tf . '*.{htm,html}', GLOB_BRACE );
 
-		foreach( $html_files as $file ) {
-
+		foreach ( $html_files as $file ) {
 			preg_match( '#.+/([^/]+)\.html?$#Uuis', $file, $match );
 
-			if( isset( $match[1] ) && ! empty( $match[1] ) ) {
+			if ( isset( $match[1] ) && ! empty( $match[1] ) ) {
 				$this->html_files[ $match[1] ] = $match[0];
 			}
-
 		}
 
 		return true;
@@ -146,8 +144,8 @@ class Backend
 		// the sections
 		$sections = array(
 			// section-id => title, callback
-			'aplus' => array( 'title' => __( 'AvatarPlus settings', self::TEXTDOMAIN), 'callback' => 'aplus_section' ),
-			'gplus'  => array( 'title' => __( 'Google+ settings', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
+			'aplus' => array( 'title' => __( 'AvatarPlus settings', self::TEXTDOMAIN ), 'callback' => 'aplus_section' ),
+			'gplus' => array( 'title' => __( 'Google+ settings', self::TEXTDOMAIN ), 'callback' => 'gplus_section' ),
 		);
 
 		// fields for the sections
@@ -160,30 +158,26 @@ class Backend
 
 		// register settings
 		register_setting(
-			self::OPTION_KEY,
-			self::OPTION_KEY,
-			array( $this, 'options_validate' )
+		    self::OPTION_KEY,
+		    self::OPTION_KEY,
+		    array( $this, 'options_validate' )
 		);
 
 		// register each section
-		foreach( $sections as $id => $args ){
-
-			$title = $args['title'];
+		foreach ( $sections as $id => $args ) {
+			$title    = $args['title'];
 			$callback = array( $this, $args['callback'] );
 
 			add_settings_section( $id, $title, $callback, self::MENU_SLUG );
-
 		}
 
 		// register each field in it's section
-		foreach( $fields as $id => $args ){
-
-			$title = $args['title'];
-			$section = $args['section'];
+		foreach ( $fields as $id => $args ) {
+			$title    = $args['title'];
+			$section  = $args['section'];
 			$callback = array( $this, $args['callback'] );
 
 			add_settings_field( $id, $title, $callback,	self::MENU_SLUG, $section );
-
 		}
 
 		return true;
@@ -200,20 +194,20 @@ class Backend
 			return false;
 
 		$this->pagehook = add_options_page(
-			'AvatarPlus',
-			'AvatarPlus',
-			'manage_options',
-			self::MENU_SLUG,
-			array( $this, 'main_section' ),
-			false,
-			'bottom'
+		    'AvatarPlus',
+		    'AvatarPlus',
+		    'manage_options',
+		    self::MENU_SLUG,
+		    array( $this, 'main_section' ),
+		    false,
+		    'bottom'
 		);
 
 		add_action(
-			'load-'.$this->pagehook,
-			array( $this, 'add_help_tab' ),
-			10,
-			0
+		    'load-'.$this->pagehook,
+		    array( $this, 'add_help_tab' ),
+		    10,
+		    0
 		);
 
 		return true;
@@ -232,11 +226,11 @@ class Backend
 			return false;
 
 		$screen->add_help_tab(
-				array(
-					'id'       => 'avatarplus',
-					'title'    => 'AvatarPlus',
-					'content'  => $this->get_text( 'help_tab_content' )
-				)
+		    array(
+                'id'       => 'avatarplus',
+                'title'    => 'AvatarPlus',
+                'content'  => $this->get_text( 'help_tab_content' ),
+            )
 		);
 
 		return true;
@@ -256,7 +250,7 @@ class Backend
 
 		$input['use_extra_field'] = ( isset( $input['use_extra_field'] ) && 'on' === $input['use_extra_field'] ) ? true : false;
 
-		$input['cache_expiration_value'] = filter_var( $input['cache_expiration_value'], FILTER_SANITIZE_NUMBER_INT );
+		$input['cache_expiration_value']   = filter_var( $input['cache_expiration_value'], FILTER_SANITIZE_NUMBER_INT );
 		$input['cache_expiration_periode'] = ( in_array( (string) $input['cache_expiration_periode'], array( 'days', 'weeks', 'month', 'years' ) ) ) ?
 			(string) $input['cache_expiration_periode'] : 'days';
 
@@ -327,12 +321,12 @@ class Backend
 		$use_extra_field = self::get_option( 'use_extra_field' );
 		$checked = checked( $use_extra_field, true, false );
 
-		printf(
-			'<input type="checkbox" name="%1$s[use_extra_field]" id="%1$s-use_extra_field"%2$s> %3$s',
-			self::OPTION_KEY,
-			$checked,
-			__( 'Use extra field in comment form', self::TEXTDOMAIN )
-		);
+        printf(
+            '<input type="checkbox" name="%1$s[use_extra_field]" id="%1$s-use_extra_field"%2$s> %3$s',
+            self::OPTION_KEY,
+            $checked,
+            __( 'Use extra field in comment form', self::TEXTDOMAIN )
+        );
 
 		return true;
 
@@ -347,11 +341,15 @@ class Backend
 		$cache_value   = self::get_option( 'cache_expiration_value' );
 		$cache_periode = self::get_option( 'cache_expiration_periode' );
 
-		printf(
-			'<input type="text" size="1" style="text-align:right" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s">',
-			self::OPTION_KEY,
-			esc_attr( $cache_value )
-		);
+		$disabled = ( defined( 'DISABLE_WP_CRON' ) && true == DISABLE_WP_CRON ) ?
+			' disabled' : '';
+
+        printf(
+            '<input type="text" size="1" style="text-align:right" name="%1$s[cache_expiration_value]" id=name="%1$s-cache_value" value="%2$s"%3$s>',
+            self::OPTION_KEY,
+            esc_attr( $cache_value ),
+            $disabled
+        );
 
 		$option_values = array(
 			'days'   => __( 'Day(s)', self::TEXTDOMAIN ),
@@ -362,18 +360,19 @@ class Backend
 
 		$options_output = '';
 
-		$select_skeleton = '<select name="%1$s[cache_expiration_periode]" id="%1$scache_periode">%2$s</select>';
+		$select_skeleton = '<select name="%1$s[cache_expiration_periode]" id="%1$scache_periode"%3$s>%2$s</select>';
 
-		foreach( $option_values as $value => $text ) {
-
+		foreach ( $option_values as $value => $text ) {
 			$selected = ( $value === $cache_periode ) ?
 				' SELECTED' : '';
 
 			$options_output .= sprintf( "\t<option value=\"%s\"%s>%s</option>\n", $value, $selected, $text );
-
 		}
 
-		printf( $select_skeleton, self::OPTION_KEY, $options_output );
+		printf( $select_skeleton, self::OPTION_KEY, $options_output, $disabled );
+
+		if( ! empty( $disabled ) )
+			printf( '<div class="error-message"><p>%s</p></div>', __( "Your WordPress Cronjobs are disabled. The cache won't be deleted!", self::TEXTDOMAIN ) );
 
 		return true;
 
@@ -399,11 +398,11 @@ class Backend
 
 		$apikey = self::get_option( 'gplus_apikey' );
 
-		printf(
-			'<input type="text" size="50" name="%1$s[gplus_apikey]" id="%1$s-gplus_apikey" value="%2$s">',
-			self::OPTION_KEY,
-			esc_attr( $apikey )
-		);
+        printf(
+            '<input type="text" size="50" name="%1$s[gplus_apikey]" id="%1$s-gplus_apikey" value="%2$s">',
+            self::OPTION_KEY,
+            esc_attr( $apikey )
+        );
 
 		return true;
 
