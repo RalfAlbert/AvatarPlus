@@ -161,7 +161,7 @@ function plugin_init() {
 
 	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
 
-	if ( false !== $use_extra_field ) {
+	if( false !== $use_extra_field ) {
 
 		// add the field to comment form
 		add_filter(
@@ -188,12 +188,12 @@ function plugin_init() {
 	);
 
 	// create menupage
-	if ( is_admin() )
+	if( is_admin() )
 		$backend = new Backend\Backend();
 
 
 	// cleanup cache
-	if ( ! defined( 'DISABLE_WP_CRON' ) || true != DISABLE_WP_CRON ) {
+	if( ! defined( 'DISABLE_WP_CRON' ) || true != DISABLE_WP_CRON ) {
 		add_action(
 			'wp',
 			__NAMESPACE__ . '\check_cron_cleanup_cache'
@@ -206,7 +206,7 @@ function plugin_init() {
 	);
 
 	// debugging
-	if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG )
+	if( defined( 'WP_DEBUG' ) && true === WP_DEBUG )
 		add_action(
 			'wp_footer',
 			__NAMESPACE__ . '\get_cache_usage',
@@ -225,7 +225,7 @@ function plugin_init() {
  */
 function add_comment_field( $default_fields ) {
 
-	if ( ! is_array( $default_fields ) || empty( $default_fields ) )
+	if( ! is_array( $default_fields ) || empty( $default_fields ) )
 		return $default_fields;
 
 	$metakey    = Backend\Backend::get_option( 'metakey' );
@@ -253,7 +253,7 @@ function add_comment_field( $default_fields ) {
  */
 function save_comment_meta_data( $comment_id ) {
 
-	if ( empty( $comment_id ) )
+	if( empty( $comment_id ) )
 		return false;
 	else
 		$comment_id = (int) $comment_id;
@@ -263,7 +263,7 @@ function save_comment_meta_data( $comment_id ) {
 	$url = filter_input( INPUT_POST, $metakey, FILTER_SANITIZE_URL );
 
 	// do not save empty urls
-	if ( ! empty( $url ) ) {
+	if( ! empty( $url ) ) {
 		add_comment_meta(
 			$comment_id,
 			$metakey,
@@ -293,7 +293,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 
 	global $comment, $post;
 
-	if ( empty( $comment ) )
+	if( empty( $comment ) )
 		return $comment;
 	else
 		$comment = (object) $comment;
@@ -319,7 +319,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 		$profile2avatar = new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
 
 	// reset to default avatar if faild getting avatar from profile url
-	if ( false === $aplus_avatar->is_url_reachable() )
+	if( false === $aplus_avatar->get_service() )
 		return $avatar;
 
 	$aplus_avatar_html = replace_avatar_html( $avatar, $aplus_avatar->get_avatar_url( $size ), $size, $alt );
@@ -338,7 +338,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
  */
 function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
-	if ( empty( $html ) )
+	if( empty( $html ) )
 		return '';
 
 	$search_and_replace = array(
@@ -350,7 +350,7 @@ function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
 	foreach ( $search_and_replace as $attrib => $var ) {
 
-		if ( ! empty( $$var ) )
+		if( ! empty( $$var ) )
 			$html = preg_replace(
 				sprintf( '#%s=(["|\'])(.*)(["|\'])#Uuis', $attrib ),
 				sprintf( '%s=${1}%s${3}', $attrib, $$var ),
@@ -382,7 +382,7 @@ function get_cache_usage() {
  */
 function check_cron_cleanup_cache() {
 
-	if ( ! wp_next_scheduled( 'avatarplus_cleanup_cache' ) ) {
+	if( ! wp_next_scheduled( 'avatarplus_cleanup_cache' ) ) {
 
 		wp_schedule_event( time(), 'daily', 'avatarplus_cleanup_cache' );
 
@@ -404,12 +404,12 @@ function cleanup_cache() {
 
 	// define time constants for WP < 3.5
 	// define additional constant MONTH_IN_SECONDS ( = 30 DAYS_IN_SECONDS )
-	if ( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
-	if ( ! defined( 'HOUR_IN_SECONDS' ) )   define( 'HOUR_IN_SECONDS',   60 * MINUTE_IN_SECONDS );
-	if ( ! defined( 'DAY_IN_SECONDS' ) )    define( 'DAY_IN_SECONDS',    24 * HOUR_IN_SECONDS   );
-	if ( ! defined( 'WEEK_IN_SECONDS' ) )   define( 'WEEK_IN_SECONDS',    7 * DAY_IN_SECONDS    );
-	if ( ! defined( 'MONTH_IN_SECONDS' ) )  define( 'MONTH_IN_SECONDS',  30 * DAY_IN_SECONDS    );
-	if ( ! defined( 'YEAR_IN_SECONDS' ) )   define( 'YEAR_IN_SECONDS',  365 * DAY_IN_SECONDS    );
+	if( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
+	if( ! defined( 'HOUR_IN_SECONDS' ) )   define( 'HOUR_IN_SECONDS',   60 * MINUTE_IN_SECONDS );
+	if( ! defined( 'DAY_IN_SECONDS' ) )    define( 'DAY_IN_SECONDS',    24 * HOUR_IN_SECONDS   );
+	if( ! defined( 'WEEK_IN_SECONDS' ) )   define( 'WEEK_IN_SECONDS',    7 * DAY_IN_SECONDS    );
+	if( ! defined( 'MONTH_IN_SECONDS' ) )  define( 'MONTH_IN_SECONDS',  30 * DAY_IN_SECONDS    );
+	if( ! defined( 'YEAR_IN_SECONDS' ) )   define( 'YEAR_IN_SECONDS',  365 * DAY_IN_SECONDS    );
 
 	$value   = Backend\Backend::get_option( 'cache_expiration_value' );
 	$periode = Backend\Backend::get_option( 'cache_expiration_periode' );
@@ -426,7 +426,7 @@ function cleanup_cache() {
 	$seconds = ( key_exists( $periode, $transform ) ) ?
 		(int) ($transform[$periode] * $value) : 0;
 
-	if ( 0 === $seconds )
+	if( 0 === $seconds )
 		return false;
 
 	$timestamp = date( 'Y-m-d H:i:s', ( time() - $seconds ) );
@@ -439,7 +439,7 @@ function cleanup_cache() {
 	foreach ( $pids as $pid ) {
 		$pm = get_post_meta( $pid->ID, $metakey, true );
 
-		if ( ! empty( $pm ) ) {
+		if( ! empty( $pm ) ) {
 
 			delete_post_meta( $pid->ID, $metakey );
 			$counter['deleted']++;

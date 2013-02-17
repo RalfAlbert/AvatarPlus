@@ -63,7 +63,7 @@ class Cache
 	 */
 	public function __construct( $post_id = 0 ) {
 
-		$this->post_id = filter_var( $post_id, FILTER_SANITIZE_NUMBER_INT );
+		$this->post_id = (int) filter_var( $post_id, FILTER_SANITIZE_NUMBER_INT );
 
 		$this->cachekey = Backend::get_option( 'cachingkey' );
 
@@ -93,7 +93,8 @@ class Cache
 	 */
 	public function get_cached_url( $url = '' ) {
 
-		return self::$cache[ md5( $url ) ];
+		return ( isset( self::$cache[ md5( $url ) ] ) ) ?
+			self::$cache[ md5( $url ) ] : null;
 
 	}
 
@@ -114,30 +115,55 @@ class Cache
 
 		$this->write_cache( $this->post_id );
 
-		return true;
+		return self::$cache;
 
 	}
 
 	/**
 	 * Read the external cache
-	 * @return array Cached url data
+	 * @param int $post_id Post ID
+	 * @return array|boolean Cached url data, false on error
 	 */
-	public function read_cache( $post_id ) {
+	public function read_cache( $post_id = 0 ) {
 
-		return get_post_meta( $post_id, $this->cachekey, true );
+		$post_id = $this->integer( $post_id );
+		return ( empty( $post_id ) ) ?
+			false : get_post_meta( $post_id, $this->cachekey, true );
 
 	}
 
 	/**
 	 * Writing the external cache
-	 * @return boolean Always true
+	 * @param int $post_id Post ID
+	 * @return boolean True on success, false on error
 	 */
-	public function write_cache( $post_id ) {
+	public function write_cache( $post_id = 0 ) {
 
-		update_post_meta( $post_id, $this->cachekey, self::$cache );
-
-		return true;
+		$post_id = $this->integer( $post_id );
+		return ( empty( $post_id ) ) ?
+			false : update_post_meta( $post_id, $this->cachekey, self::$cache );
 
 	}
 
+	/**
+	 * Delete the cache of a given post ID
+	 * @param int $post_id Post ID
+	 * @return boolean True on success, false on error
+	 */
+	public function reset_cache( $post_id = 0 ) {
+
+		$post_id = $this->integer( $post_id );
+		return ( empty( $post_id ) ) ?
+			false : delete_post_meta( $post_id, $this->cachekey );
+
+	}
+
+	/**
+	 * Convert given var to integer
+	 * @param number $var
+	 * @return number
+	 */
+	protected function integer( $var = null ) {
+		return (int) $var;
+	}
 }
