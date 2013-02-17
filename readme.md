@@ -8,7 +8,7 @@ AvatarPlus allows users to use their profile image from Google+, Facebook or Twi
 Note that AvatarPlus requires PHP v5.3 or greater.
 
 ## Description ##
-**AvatarPlus allows users to use the avatar from a social service of their choice (supports:** Google+, Twitter or Facebook) as their comments avatar instead of the default from the Gravatar service or your WordPress installation. More and more users avoid typing in their mail address and instead want just want to hand out their social profile URL. AvatarPlus adds this feature to WordPress comments, thus making the mail address field not required anymore.
+AvatarPlus allows users to use the avatar from a social service of their choice (supports: Google+, Twitter or Facebook) as their comments avatar instead of the default from the Gravatar service or your WordPress installation. More and more users avoid typing in their mail address and instead want just want to hand out their social profile URL. AvatarPlus adds this feature to WordPress comments, thus making the mail address field not required anymore.
 
 **Flexibility for a maximum number of use cases:** The plugin allows to either add a new field to the comments section or just use the Homepage-URL field for the social profile URL. AvatarPlus also recognizes redirects and is able to work with most URL-shortening services like bit.ly or goo.gl.
 
