@@ -27,15 +27,9 @@ If you want to install the plugin manually:
 4. Activate the plugin.
 5. If needed, adjust the settings under "Settings" » "AvatarPlus".
 
-## Frequently Asked Questions ##
- - No known questions yet
-
-## Screenshots ##
- - No screenshots available yet
-
 ## Changelog ##
 
-### 0.2.1 ###
+### 0.3 ###
 * Fix small caching problem
 
 ### 0.2 ###
@@ -43,9 +37,6 @@ If you want to install the plugin manually:
 
 ### 0.1 ###
 * First developer version
-
-## Upgrade Notice ##
- - No upgrades available
 
 ## Arbitrary section ##
 AvatarPlus uses a simple caching mechanism. In some countries, webmaster have to declare if the webpage stores personal data about the user. AvatarPlus stores the following data:
