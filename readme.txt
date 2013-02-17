@@ -1,11 +1,11 @@
 === AvatarPlus ===
 
-Contributors: Ralf Albert
+Contributors: Ralf Albert, F J Kaiser
 Donate link: https://github.com/RalfAlbert/AvatarPlus
 Tags: comments, avatar
 Requires at least: 3.5
-Tested up to: 3.5
-Stable tag: 0.2
+Tested up to: 3.5.1
+Stable tag: 0.2.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -47,8 +47,10 @@ If you want to install the plugin manually:
 
 == Changelog ==
 
-= 0.2 =
+= 0.2.1 =
+* Fix some caching problems 
 
+= 0.2 =
 * First public version
 
 = 0.1 =
