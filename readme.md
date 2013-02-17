@@ -47,6 +47,10 @@ If you want to install the plugin manually:
 
 ## Changelog ##
 
+### 0.2.1 ###
+
+* Fix small caching problem
+
 ### 0.2 ###
 
 * First public version

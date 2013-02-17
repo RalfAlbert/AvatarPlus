@@ -48,7 +48,7 @@ If you want to install the plugin manually:
 == Changelog ==
 
 = 0.2.1 =
-* Fix some caching problems 
+* Fix small caching problems 
 
 = 0.2 =
 * First public version
