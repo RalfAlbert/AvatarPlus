@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.2.1
+ * @version    0.3
  * @link       http://wordpress.com
  */
 
@@ -17,7 +17,7 @@
  * Plugin Name:	AvatarPlus
  * Plugin URI:	http://yoda.neun12.de
  * Description:	Replacing the standard avatar in comments with a Google+, Facebook or Twitter avatar if a user enter a profile url
- * Version: 	0.2.1
+ * Version: 	0.3
  * Author: 		Ralf Albert
  * Author URI: 	http://yoda.neun12.de
  * Text Domain: avatarplus
