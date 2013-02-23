@@ -28,7 +28,7 @@
 
 namespace AvatarPlus;
 use RalfAlbert\lib\v3\Autoloader as Autoloader;
-use RalfAlbert\lib\v3\EnviromentCheck as EnvCheck;
+use RalfAlbert\lib\v3\Tools as Tools;
 use AvatarPlus\Url as Url;
 use AvatarPlus\Cache as Cache;
 use AvatarPlus\Backend as Backend;
@@ -69,17 +69,10 @@ register_uninstall_hook(
  */
 function activate() {
 
+	require_once dirname( __FILE__ ) . '/lib/tools.php';
+	Tools\check_php_version( '5.5' );
+
 	init_autoloader();
-
-	// thanks to Inpsyde
-	$needed_php_version = '5.3';
-	$compared_php_version = version_compare( phpversion(), $needed_php_version, '>=' );
-
-	if ( false == $compared_php_version ) {
-	    echo "This Plugin requires <strong>PHP {$needed_php_version}</strong> or higher.<br>";
-	    echo "You are running PHP " . phpversion();
-	    exit;
-	}
 
 	// default options
 	$options = array(
