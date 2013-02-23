@@ -28,15 +28,8 @@
 
 namespace AvatarPlus;
 
-use RalfAlbert\lib\v3\Autoloader\WP_Autoloader;
-
-//use RalfAlbert\lib\v3\Autoloader as Autoloader;
 use WordPress\Autoloader as Autoloader;
 use WordPress\Tools as Tools;
-
-use AvatarPlus\Url as Url;
-use AvatarPlus\Cache as Cache;
-//use Backend as Backend;
 
 /**
  * Initialize plugin on theme setup.
