@@ -293,10 +293,13 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 
 	global $comment, $post;
 
-	if( empty( $comment ) )
-		return $comment;
-	else
+	// bail if comment and/or post is missed
+	if ( empty( $comment ) || empty( $post ) ) {
+		return $avatar;
+	} else {
 		$comment = (object) $comment;
+		$post = (object) $post;
+	}
 
 	$aplus_avatar      = null;
 	$aplus_avatar_html = null;
@@ -305,18 +308,20 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 
 	// prevent error message on dashboard if the comment ID is not set
 	// do NOT use get_comment_ID(), this will raise the error messages again!
-	$comment_id = ( isset( $comment->comment_ID ) ) ? $comment->comment_ID : 0;
+	$comment_id = ( isset( $comment->comment_ID ) ) ? (int) $comment->comment_ID : 0;
+	$post_id    = ( isset( $post->ID ) ) ? (int) $post->ID : 0;
 
-	// Try to get an url from comment-meta
-	// Do not test on empty url or something else. If we do test it, we have to
-	// test if it is a valid url. If the url is not empty, we just try to
-	// get the avatar url. If it fails, get_avatar_url() returns
-	// an empty string and trigger the fallback to the WP avatar
-	$profile_url = get_comment_meta( $comment_id, $metakey, true );
+	// get the profile url
+	// first try to get the profile url from comment data, then from comment meta.
+	// if both are empty, bail.
+	$profile_url = ( isset( $comment->comment_author_url ) && ! empty( $comment->comment_author_url ) ) ?
+			$comment->comment_author_url : get_comment_meta( $comment_id, $metakey, true );
 
-	$aplus_avatar = ( ! empty( $profile_url ) ) ?
-		$profile2avatar = new Url\Profile_To_Avatar( $profile_url, $size, $post->ID ) :
-		$profile2avatar = new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
+	// if no profile url was found, bail
+	if( empty( $profile_url ) )
+		return $avatar;
+
+	$aplus_avatar = new Url\Profile_To_Avatar( $profile_url, $size, $post_id );
 
 	// reset to default avatar if faild getting avatar from profile url
 	if( false === $aplus_avatar->get_service() )
@@ -327,6 +332,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 	return $aplus_avatar_html;
 
 }
+
 
 /**
  * Replacing the attributes in the WP avatar <img>-tag
