@@ -1,15 +1,16 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: AvatarPlus v0.2.20130112\n"
+"Project-Id-Version: AvatarPlus v0.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2013-01-12 21:17:35+0000\n"
+"PO-Revision-Date: 2013-02-23 14:51:55+0000\n"
 "Last-Translator: verantwortlicher <neun12@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: CSL v1.x\n"
 "X-Poedit-Language: German\n"
 "X-Poedit-Country: GERMANY\n"
 "X-Poedit-SourceCharset: utf-8\n"
@@ -44,64 +45,74 @@ msgstr "Ersetzt den Standard-Avatar im Kommentarbereich mit einem Google+, Faceb
 msgid "Ralf Albert"
 msgstr ""
 
-#. translators: plugin header field 'Version'
-#: avatarplus.php:0
-#@ avatarplus
-msgid "0.2.20130112"
-msgstr ""
-
-#: classes/class-backend.php:145
+#: classes/class-backend.php:147
 #@ avatarplus
 msgid "AvatarPlus settings"
 msgstr "AvatarPlus Einstellungen"
 
-#: classes/class-backend.php:146
+#: classes/class-backend.php:148
 #@ avatarplus
 msgid "Google+ settings"
 msgstr "Google+ Einstellungen"
 
-#: classes/class-backend.php:152
+#: classes/class-backend.php:154
 #@ avatarplus
 msgid "Extra field"
 msgstr "Zusatzfeld"
 
-#: classes/class-backend.php:153
+#: classes/class-backend.php:155
 #@ avatarplus
 msgid "Cache"
 msgstr "Cache"
 
-#: classes/class-backend.php:154
+#: classes/class-backend.php:156
 #@ avatarplus
 msgid "Google+ API key"
 msgstr "Google+ API Schlüssel"
 
-#: classes/class-backend.php:296
+#: classes/class-backend.php:294
 #@ avatarplus
 msgid "Save Changes"
 msgstr "Änderungen übernehmen"
 
-#: classes/class-backend.php:330
+#: classes/class-backend.php:328
 #@ avatarplus
 msgid "Use extra field in comment form"
 msgstr "Benutze ein zusätzliches Feld im Kommentarbereich"
 
-#: classes/class-backend.php:353
+#: classes/class-backend.php:355
 #@ avatarplus
 msgid "Day(s)"
 msgstr "Tag(e)"
 
-#: classes/class-backend.php:354
+#: classes/class-backend.php:356
 #@ avatarplus
 msgid "Week(s)"
 msgstr "Woche(n)"
 
-#: classes/class-backend.php:355
+#: classes/class-backend.php:357
 #@ avatarplus
 msgid "Month(s)"
 msgstr "Monat(e)"
 
-#: classes/class-backend.php:356
+#: classes/class-backend.php:358
 #@ avatarplus
 msgid "Year(s)"
 msgstr "Jahr(e)"
+
+#. translators: plugin header field 'Version'
+#: avatarplus.php:0
+#@ avatarplus
+msgid "0.3"
+msgstr ""
+
+#: classes/class-backend.php:375
+#@ avatarplus
+msgid "Your WordPress Cronjobs are disabled. The cache won't be deleted!"
+msgstr "Deine WordPress Cronjobs sind deaktiviert. Der Cache wird nicht automatisch gelöscht!"
+
+#: lib/tools.php:12
+#, php-format
+msgid "<p>This Plugin requires <strong>PHP %s</strong> or higher.<br>You are running PHP %s</p>"
+msgstr ""
 
