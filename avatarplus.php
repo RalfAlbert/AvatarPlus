@@ -27,11 +27,16 @@
  */
 
 namespace AvatarPlus;
-use RalfAlbert\lib\v3\Autoloader as Autoloader;
-use RalfAlbert\lib\v3\Tools as Tools;
+
+use RalfAlbert\lib\v3\Autoloader\WP_Autoloader;
+
+//use RalfAlbert\lib\v3\Autoloader as Autoloader;
+use WordPress\Autoloader as Autoloader;
+use WordPress\Tools as Tools;
+
 use AvatarPlus\Url as Url;
 use AvatarPlus\Cache as Cache;
-use AvatarPlus\Backend as Backend;
+//use Backend as Backend;
 
 /**
  * Initialize plugin on theme setup.
@@ -69,7 +74,7 @@ register_uninstall_hook(
  */
 function activate() {
 
-	require_once dirname( __FILE__ ) . '/lib/tools.php';
+	require_once 'wordpress/tools.php';
 	Tools\check_php_version();
 
 	init_autoloader();
@@ -131,16 +136,24 @@ function uninstall() {
  */
 function init_autoloader() {
 
-	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
+// 	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
 
-	$config                     = new \stdClass();
-	$config->abspath			= __FILE__;
-	$config->include_pathes		= array( '/lib', '/classes' );
-	$config->extensions			= array( '.php' );
-	$config->prefixes			= array( 'class-' );
-	$config->remove_namespace	= __NAMESPACE__;
+// 	$config                     = new \stdClass();
+// 	$config->abspath			= __FILE__;
+// 	$config->include_pathes		= array( '/lib', '/classes' );
+// 	$config->extensions			= array( '.php' );
+// 	$config->prefixes			= array( 'class-' );
+// 	$config->remove_namespace	= __NAMESPACE__;
 
-	Autoloader\WP_Autoloader::init( $config );
+// 	Autoloader\WP_Autoloader::init( $config );
+
+	require_once 'wordpress/autoloader.php';
+
+	$config = array(
+		'abspath' => __FILE__,
+	);
+
+	Autoloader\Autoloader::init( $config );
 
 	return true;
 }
@@ -358,6 +371,7 @@ function get_profile_url( $comment ) {
 
 /**
  * Replacing the attributes in the WP avatar <img>-tag
+ *
  * @param string $html The html to modify
  * @param string $url URL replacement
  * @param number $size Size replacement
@@ -394,6 +408,7 @@ function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
 /**
  * Simple debugging function
+ *
  * Print out the cache usage to the footer
  */
 function get_cache_usage() {
@@ -406,6 +421,7 @@ function get_cache_usage() {
 
 /**
  * Test if the cron to cleanup the cach data is scheduled
+ *
  * @return boolean
  */
 function check_cron_cleanup_cache() {
@@ -424,6 +440,7 @@ function check_cron_cleanup_cache() {
 
 /**
  * Delete avatarplus caching data
+ *
  * @return array Number of found post and deleted meta data (cache data)
  */
 function cleanup_cache() {

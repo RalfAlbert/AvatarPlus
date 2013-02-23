@@ -1,5 +1,5 @@
 <?php
-namespace RalfAlbert\lib\v3\Tools;
+namespace WordPress\Tools;
 
 function check_php_version( $needed_php_version = '5.3', $message = '' ) {
 
