@@ -70,7 +70,7 @@ register_uninstall_hook(
 function activate() {
 
 	require_once dirname( __FILE__ ) . '/lib/tools.php';
-	Tools\check_php_version( '5.5' );
+	Tools\check_php_version();
 
 	init_autoloader();
 
