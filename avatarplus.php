@@ -71,12 +71,15 @@ function activate() {
 
 	init_autoloader();
 
-	$env = new EnvCheck\WP_Environment_Check(
-		array(
-			'php' => '5.3',
-			'wp'  => '3.5',
-		)
-	);
+	// thanks to Inpsyde
+	$needed_php_version = '5.3';
+	$compared_php_version = version_compare( phpversion(), $needed_php_version, '>=' );
+
+	if ( false == $compared_php_version ) {
+	    echo "This Plugin requires <strong>PHP {$needed_php_version}</strong> or higher.<br>";
+	    echo "You are running PHP " . phpversion();
+	    exit;
+	}
 
 	// default options
 	$options = array(
@@ -145,7 +148,6 @@ function init_autoloader() {
 	$config->remove_namespace	= __NAMESPACE__;
 
 	Autoloader\WP_Autoloader::init( $config );
-
 
 	return true;
 }
