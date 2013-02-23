@@ -305,17 +305,9 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 	$aplus_avatar_html = null;
 	$profile_url       = '';
 	$metakey           = Backend\Backend::get_option( 'metakey' );
+	$post_id           = ( isset( $post->ID ) ) ? (int) $post->ID : 0;
 
-	// prevent error message on dashboard if the comment ID is not set
-	// do NOT use get_comment_ID(), this will raise the error messages again!
-	$comment_id = ( isset( $comment->comment_ID ) ) ? (int) $comment->comment_ID : 0;
-	$post_id    = ( isset( $post->ID ) ) ? (int) $post->ID : 0;
-
-	// get the profile url
-	// first try to get the profile url from comment data, then from comment meta.
-	// if both are empty, bail.
-	$profile_url = ( isset( $comment->comment_author_url ) && ! empty( $comment->comment_author_url ) ) ?
-			$comment->comment_author_url : get_comment_meta( $comment_id, $metakey, true );
+	$profile_url = get_profile_url( $comment );
 
 	// if no profile url was found, bail
 	if( empty( $profile_url ) )
@@ -333,6 +325,41 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 
 }
 
+/**
+ * Get comment author url
+ *
+ * This function returns the comment author url depending on using an extra field
+ *
+ * @param object $comment The comment data
+ * @return boolean|string $profile_url The comment author url or false if no url is available
+ */
+function get_profile_url( $comment ) {
+
+	if ( empty( $comment ) )
+		return false;
+
+	$profile_url     = false;
+	$metakey         = Backend\Backend::get_option( 'metakey' );
+	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
+	// prevent error message on dashboard if the comment ID is not set
+	// do NOT use get_comment_ID(), this will raise the error messages again!
+	$comment_id = ( isset( $comment->comment_ID ) ) ? (int) $comment->comment_ID : 0;
+
+	// get the profile url depending on use_extra_field
+	// if an extra field is in use, prefer the url from the extra filed. Else
+	// prefer the url from comment data.
+	if ( true == $use_extra_field ) {
+		$url = get_comment_meta( $comment_id, $metakey, true );
+		$profile_url = ( ! empty( $url ) ) ?
+			$url : $comment->comment_author_url;
+	} else {
+		$profile_url = ( isset( $comment->comment_author_url ) && ! empty( $comment->comment_author_url ) ) ?
+			$comment->comment_author_url : get_comment_meta( $comment_id, $metakey, true );
+	}
+
+	return $profile_url;
+
+}
 
 /**
  * Replacing the attributes in the WP avatar <img>-tag
