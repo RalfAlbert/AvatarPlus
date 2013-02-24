@@ -129,17 +129,6 @@ function uninstall() {
  */
 function init_autoloader() {
 
-// 	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
-
-// 	$config                     = new \stdClass();
-// 	$config->abspath			= __FILE__;
-// 	$config->include_pathes		= array( '/lib', '/classes' );
-// 	$config->extensions			= array( '.php' );
-// 	$config->prefixes			= array( 'class-' );
-// 	$config->remove_namespace	= __NAMESPACE__;
-
-// 	Autoloader\WP_Autoloader::init( $config );
-
 	require_once 'wordpress/autoloader.php';
 
 	$config = array(
