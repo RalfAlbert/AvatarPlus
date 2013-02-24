@@ -126,9 +126,7 @@ class Cache
 	 */
 	public function read_cache( $post_id = 0 ) {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : get_post_meta( $post_id, $this->cachekey, true );
+		return get_post_meta( $post_id, $this->cachekey, true );
 
 	}
 
@@ -139,9 +137,7 @@ class Cache
 	 */
 	public function write_cache( $post_id = 0 ) {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : update_post_meta( $post_id, $this->cachekey, self::$cache );
+		return update_post_meta( $post_id, $this->cachekey, self::$cache );
 
 	}
 
@@ -152,18 +148,8 @@ class Cache
 	 */
 	public function reset_cache( $post_id = 0 ) {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : delete_post_meta( $post_id, $this->cachekey );
+		return delete_post_meta( $post_id, $this->cachekey );
 
 	}
 
-	/**
-	 * Convert given var to integer
-	 * @param number $var
-	 * @return number
-	 */
-	protected function integer( $var = null ) {
-		return (int) $var;
-	}
 }
