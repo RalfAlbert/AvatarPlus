@@ -288,7 +288,7 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 		return $avatar;
 	} else {
 		$comment = (object) $comment;
-		$post = (object) $post;
+		$post    = (object) $post;
 	}
 
 	$aplus_avatar      = null;

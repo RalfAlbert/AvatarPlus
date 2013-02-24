@@ -204,11 +204,11 @@ class Profile_To_Avatar
 	 */
 	public function get_avatar_url( $size ) {
 
-		if ( isset( $this->url->avatar_url ) && ! empty( $this->url->avatar_url ) )
-			return $this->url->avatar_url;
-
 		if ( ! isset( $this->url ) )
 			return;
+
+		if ( isset( $this->url->avatar_url ) && ! empty( $this->url->avatar_url ) )
+			return $this->url->avatar_url;
 
 		$url        = isset( $this->url->location ) ? $this->url->location : $this->url->url; // prefer the resolved url, not the original url!!
 		$avatar_url = '';
