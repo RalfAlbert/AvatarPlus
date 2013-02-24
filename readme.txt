@@ -5,7 +5,7 @@ Donate link: https://github.com/RalfAlbert/AvatarPlus
 Tags: comments, avatar
 Requires at least: 3.5
 Tested up to: 3.5.1
-Stable tag: 0.2.1
+Stable tag: 0.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,13 @@ If you want to install the plugin manually:
  1. AvatarPlus backend
 
 == Changelog ==
+
+= 0.4 =
+
+* Optimized caching
+* Simplified autoloading
+* Simplified php version check
+* Fix some smaller bugs
 
 = 0.3 =
 

@@ -29,6 +29,14 @@ If you want to install the plugin manually:
 
 ## Changelog ##
 
+### 0.4 ###
+
+* Optimized caching
+* Simplified autoloading
+* Simplified php version check
+* Fix some smaller bugs
+
+
 ### 0.3 ###
 * Fix small caching problem
 

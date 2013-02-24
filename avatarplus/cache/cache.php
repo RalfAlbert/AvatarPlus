@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus\Cache
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    20130217
+ * @version    20130224
  * @link       http://wordpress.com
  */
 
@@ -67,8 +67,8 @@ class Cache
 
 		$this->cachekey = Backend::get_option( 'cachingkey' );
 
-		if( empty( self::$cache ) )
-			self::$cache = $this->read_cache( $this->post_id );
+		if( empty( self::$cache[ $this->post_id ] ) )
+			self::$cache[ $this->post_id ] = $this->read_cache();
 
 	}
 
@@ -79,10 +79,10 @@ class Cache
 	 */
 	public function is_cached( $url = '' ) {
 
-		if( isset( self::$cache[ md5( $url ) ] ) )
+		if( isset( self::$cache[ $this->post_id ][ md5( $url ) ] ) )
 			self::$chache_hits++;
 
-		return isset( self::$cache[ md5( $url ) ] );
+		return isset( self::$cache[ $this->post_id ][ md5( $url ) ] );
 
 	}
 
@@ -93,8 +93,8 @@ class Cache
 	 */
 	public function get_cached_url( $url = '' ) {
 
-		return ( isset( self::$cache[ md5( $url ) ] ) ) ?
-			self::$cache[ md5( $url ) ] : null;
+		return ( isset( self::$cache[ $this->post_id ][ md5( $url ) ] ) ) ?
+			self::$cache[ $this->post_id ][ md5( $url ) ] : null;
 
 	}
 
@@ -105,15 +105,16 @@ class Cache
 	 */
 	public function cache_url( \stdClass $urldata ) {
 
-		// do not cache data if no avatar is available
-		if( empty( $urldata->avatar_url ) )
-			return false;
+		// setup the service to false if no avatar-url is set
+		if ( empty( $urldata->avatar_url ) && ! isset( $urldata->service ) ) {
+			$urldata->service = false;
+		}
 
-		self::$cache[ md5( $urldata->url ) ] = $urldata;
+		self::$cache[ $this->post_id ][ md5( $urldata->url ) ] = $urldata;
 
 		self::$chache_miss++;
 
-		$this->write_cache( $this->post_id );
+		$this->write_cache();
 
 		return self::$cache;
 
@@ -124,11 +125,9 @@ class Cache
 	 * @param int $post_id Post ID
 	 * @return array|boolean Cached url data, false on error
 	 */
-	public function read_cache( $post_id = 0 ) {
+	public function read_cache() {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : get_post_meta( $post_id, $this->cachekey, true );
+		return get_post_meta( $this->post_id, $this->cachekey, true );
 
 	}
 
@@ -137,11 +136,9 @@ class Cache
 	 * @param int $post_id Post ID
 	 * @return boolean True on success, false on error
 	 */
-	public function write_cache( $post_id = 0 ) {
+	public function write_cache() {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : update_post_meta( $post_id, $this->cachekey, self::$cache );
+		return update_post_meta( $this->post_id, $this->cachekey, self::$cache[ $this->post_id ] );
 
 	}
 
@@ -150,20 +147,10 @@ class Cache
 	 * @param int $post_id Post ID
 	 * @return boolean True on success, false on error
 	 */
-	public function reset_cache( $post_id = 0 ) {
+	public function reset_cache() {
 
-		$post_id = $this->integer( $post_id );
-		return ( empty( $post_id ) ) ?
-			false : delete_post_meta( $post_id, $this->cachekey );
+		return delete_post_meta( $this->post_id, $this->cachekey );
 
 	}
 
-	/**
-	 * Convert given var to integer
-	 * @param number $var
-	 * @return number
-	 */
-	protected function integer( $var = null ) {
-		return (int) $var;
-	}
 }

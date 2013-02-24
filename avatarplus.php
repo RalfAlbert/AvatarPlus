@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    0.3
+ * @version    0.4
  * @link       http://wordpress.com
  */
 
@@ -17,7 +17,7 @@
  * Plugin Name:	AvatarPlus
  * Plugin URI:	http://yoda.neun12.de
  * Description:	Replacing the standard avatar in comments with a Google+, Facebook or Twitter avatar if a user enter a profile url
- * Version: 	0.3
+ * Version: 	0.4
  * Author: 		Ralf Albert
  * Author URI: 	http://yoda.neun12.de
  * Text Domain: avatarplus
@@ -27,11 +27,9 @@
  */
 
 namespace AvatarPlus;
-use RalfAlbert\lib\v3\Autoloader as Autoloader;
-use RalfAlbert\lib\v3\EnviromentCheck as EnvCheck;
-use AvatarPlus\Url as Url;
-use AvatarPlus\Cache as Cache;
-use AvatarPlus\Backend as Backend;
+
+use WordPress\Autoloader as Autoloader;
+use WordPress\Tools as Tools;
 
 /**
  * Initialize plugin on theme setup.
@@ -69,14 +67,10 @@ register_uninstall_hook(
  */
 function activate() {
 
-	init_autoloader();
+	require_once 'wordpress/tools.php';
+	Tools\check_php_version();
 
-	$env = new EnvCheck\WP_Environment_Check(
-		array(
-			'php' => '5.3',
-			'wp'  => '3.5',
-		)
-	);
+	init_autoloader();
 
 	// default options
 	$options = array(
@@ -135,17 +129,13 @@ function uninstall() {
  */
 function init_autoloader() {
 
-	require_once dirname( __FILE__ ) . '/lib/class-wp_autoloader.php';
+	require_once 'wordpress/autoloader.php';
 
-	$config                     = new \stdClass();
-	$config->abspath			= __FILE__;
-	$config->include_pathes		= array( '/lib', '/classes' );
-	$config->extensions			= array( '.php' );
-	$config->prefixes			= array( 'class-' );
-	$config->remove_namespace	= __NAMESPACE__;
+	$config = array(
+		'abspath' => __FILE__,
+	);
 
-	Autoloader\WP_Autoloader::init( $config );
-
+	Autoloader\Autoloader::init( $config );
 
 	return true;
 }
@@ -293,30 +283,27 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 
 	global $comment, $post;
 
-	if( empty( $comment ) )
-		return $comment;
-	else
+	// bail if comment and/or post is missed
+	if ( empty( $comment ) || empty( $post ) ) {
+		return $avatar;
+	} else {
 		$comment = (object) $comment;
+		$post    = (object) $post;
+	}
 
 	$aplus_avatar      = null;
 	$aplus_avatar_html = null;
 	$profile_url       = '';
 	$metakey           = Backend\Backend::get_option( 'metakey' );
+	$post_id           = ( isset( $post->ID ) ) ? (int) $post->ID : 0;
 
-	// prevent error message on dashboard if the comment ID is not set
-	// do NOT use get_comment_ID(), this will raise the error messages again!
-	$comment_id = ( isset( $comment->comment_ID ) ) ? $comment->comment_ID : 0;
+	$profile_url = get_profile_url( $comment );
 
-	// Try to get an url from comment-meta
-	// Do not test on empty url or something else. If we do test it, we have to
-	// test if it is a valid url. If the url is not empty, we just try to
-	// get the avatar url. If it fails, get_avatar_url() returns
-	// an empty string and trigger the fallback to the WP avatar
-	$profile_url = get_comment_meta( $comment_id, $metakey, true );
+	// if no profile url was found, bail
+	if( empty( $profile_url ) )
+		return $avatar;
 
-	$aplus_avatar = ( ! empty( $profile_url ) ) ?
-		$profile2avatar = new Url\Profile_To_Avatar( $profile_url, $size, $post->ID ) :
-		$profile2avatar = new Url\Profile_To_Avatar( $comment->comment_author_url, $size, $post->ID );
+	$aplus_avatar = new Url\Profile_To_Avatar( $profile_url, $size, $post_id );
 
 	// reset to default avatar if faild getting avatar from profile url
 	if( false === $aplus_avatar->get_service() )
@@ -329,7 +316,44 @@ function get_aplus_avatar( $avatar, $id_or_email, $size = 96, $default = '', $al
 }
 
 /**
+ * Get comment author url
+ *
+ * This function returns the comment author url depending on using an extra field
+ *
+ * @param object $comment The comment data
+ * @return boolean|string $profile_url The comment author url or false if no url is available
+ */
+function get_profile_url( $comment ) {
+
+	if ( empty( $comment ) )
+		return false;
+
+	$profile_url     = false;
+	$metakey         = Backend\Backend::get_option( 'metakey' );
+	$use_extra_field = Backend\Backend::get_option( 'use_extra_field' );
+	// prevent error message on dashboard if the comment ID is not set
+	// do NOT use get_comment_ID(), this will raise the error messages again!
+	$comment_id = ( isset( $comment->comment_ID ) ) ? (int) $comment->comment_ID : 0;
+
+	// get the profile url depending on use_extra_field
+	// if an extra field is in use, prefer the url from the extra filed. Else
+	// prefer the url from comment data.
+	if ( true == $use_extra_field ) {
+		$url = get_comment_meta( $comment_id, $metakey, true );
+		$profile_url = ( ! empty( $url ) ) ?
+			$url : $comment->comment_author_url;
+	} else {
+		$profile_url = ( isset( $comment->comment_author_url ) && ! empty( $comment->comment_author_url ) ) ?
+			$comment->comment_author_url : get_comment_meta( $comment_id, $metakey, true );
+	}
+
+	return $profile_url;
+
+}
+
+/**
  * Replacing the attributes in the WP avatar <img>-tag
+ *
  * @param string $html The html to modify
  * @param string $url URL replacement
  * @param number $size Size replacement
@@ -366,6 +390,7 @@ function replace_avatar_html( $html = '', $url = '', $size = 0, $alt = '' ) {
 
 /**
  * Simple debugging function
+ *
  * Print out the cache usage to the footer
  */
 function get_cache_usage() {
@@ -378,6 +403,7 @@ function get_cache_usage() {
 
 /**
  * Test if the cron to cleanup the cach data is scheduled
+ *
  * @return boolean
  */
 function check_cron_cleanup_cache() {
@@ -396,6 +422,7 @@ function check_cron_cleanup_cache() {
 
 /**
  * Delete avatarplus caching data
+ *
  * @return array Number of found post and deleted meta data (cache data)
  */
 function cleanup_cache() {

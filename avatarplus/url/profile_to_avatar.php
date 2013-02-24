@@ -9,7 +9,7 @@
  * @subpackage AvatarPlus\Profile_To_Avatar
  * @author     Ralf Albert <me@neun12.de>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl-3.0.txt
- * @version    20130217
+ * @version    20130224
  * @link       http://wordpress.com
  */
 
@@ -60,7 +60,7 @@ class Profile_To_Avatar
 
 		$cached_urls = new Cache( $post_id );
 
-		if( true === $cached_urls->is_cached( $url ) ) {
+		if ( true === $cached_urls->is_cached( $url ) ) {
 			$this->url = $cached_urls->get_cached_url( $url );
 		} else {
 
@@ -84,7 +84,7 @@ class Profile_To_Avatar
 	public function setup_url( $url ) {
 
 		// get data from $data if this method is called recursive
-		if( is_object( $url ) ) {
+		if ( is_object( $url ) ) {
 			$data = $url;
 			$data->url = $data->location;
 			$data->is_redirected = false;
@@ -106,7 +106,7 @@ class Profile_To_Avatar
 		$data->url = filter_var( $data->url, FILTER_SANITIZE_URL ) & filter_var( $data->url, FILTER_VALIDATE_URL );
 
 		// the url is not a valid url, stop setup here
-		if( empty( $data->url ) )
+		if ( empty( $data->url ) )
 			return null;
 
 		// detect redirection and  test if the url is reachable
@@ -116,7 +116,7 @@ class Profile_To_Avatar
 		$remote = wp_remote_get( $data->url, array( 'sslverify' => false, 'redirection' => $this->redirection_count ) );
 
 		// if the url is valid, but is not reachable, stop setup here
-		if( is_wp_error( $remote ) ) {
+		if ( is_wp_error( $remote ) ) {
 			$data->service = false;
 
 			return $data;
@@ -155,16 +155,16 @@ class Profile_To_Avatar
 		}
 
 		// if the url is a redirection, call setup_url() recursive to resolve the redirection
-		if( true === $data->is_redirected ) {
+		if ( true === $data->is_redirected ) {
 			// save the original url
-			if( empty( $this->original_url ) )
+			if ( empty( $this->original_url ) )
 				$this->original_url = $data->url;
 
 			$this->setup_url( $data );
 		}
 
 		// copy back the original url
-		if( ! empty( $this->original_url ) )
+		if ( ! empty( $this->original_url ) )
 			$data->url = $this->original_url;
 
 
@@ -204,7 +204,10 @@ class Profile_To_Avatar
 	 */
 	public function get_avatar_url( $size ) {
 
-		if( isset( $this->url->avatar_url ) && ! empty( $this->url->avatar_url ) )
+		if ( ! isset( $this->url ) )
+			return;
+
+		if ( isset( $this->url->avatar_url ) && ! empty( $this->url->avatar_url ) )
 			return $this->url->avatar_url;
 
 		$url        = isset( $this->url->location ) ? $this->url->location : $this->url->url; // prefer the resolved url, not the original url!!
@@ -212,7 +215,7 @@ class Profile_To_Avatar
 
 		preg_match( '#https?://(.+)/#Uuis', $url, $service );
 
-		if( isset( $service[1] ) && ! empty( $service[1] ) ) {
+		if ( isset( $service[1] ) && ! empty( $service[1] ) ) {
 
 			switch ( $service[1] ) {
 				case 'plus.google.com':
@@ -237,7 +240,7 @@ class Profile_To_Avatar
 			}
 		}
 
-		if( ! empty( $avatar_url ) ) {
+		if ( ! empty( $avatar_url ) ) {
 			$this->url->avatar_url   = $avatar_url;
 		}
 
@@ -257,7 +260,7 @@ class Profile_To_Avatar
 		$apikey = Backend::get_option( 'gplus_apikey' );
 
 		// no key, no data!
-		if( empty( $apikey ) || empty( $url ) )
+		if ( empty( $apikey ) || empty( $url ) )
 			return '';
 
 		// predefine some vars
@@ -271,10 +274,10 @@ class Profile_To_Avatar
 		// grab a number with minimum length of 5 digits from given url
 		preg_match( '#/(\d{5,})/?$#Uuis', $url, $matches );
 
-		if( isset( $matches[1] ) && ! empty( $matches[1] ) )
+		if ( isset( $matches[1] ) && ! empty( $matches[1] ) )
 			$userid = $matches[1];
 
-		if( ! empty( $userid ) ){
+		if ( ! empty( $userid ) ){
 			// insert user-id into G+ api-url
 			$apiurl = sprintf( $apiurl_template , $userid );
 
@@ -282,17 +285,17 @@ class Profile_To_Avatar
 			$apiurl = add_query_arg( array( 'key' => $apikey ), $apiurl );
 		}
 
-		if( ! empty( $apiurl ) ) {
+		if ( ! empty( $apiurl ) ) {
 			$remote = wp_remote_get( $apiurl, array( 'sslverify' => false ) );
 
-			if( ! is_wp_error( $remote ) ) {
+			if ( ! is_wp_error( $remote ) ) {
 				$data = json_decode( $remote['body'] );
 
-				if( isset( $data->image->url ) )
+				if ( isset( $data->image->url ) )
 					$avatar_url = $data->image->url;
 
 				// add optional size to avatar url
-				if( ! empty( $avatar_url ) )
+				if ( ! empty( $avatar_url ) )
 					$avatar_url = preg_replace( '#(sz)=(\d+)$#Uuis', "$1={$size}", $avatar_url );
 			}
 		}
@@ -309,7 +312,7 @@ class Profile_To_Avatar
 	 */
 	public function get_facebook_avatar_url( $url = '' ) {
 
-		if( empty( $url ) )
+		if ( empty( $url ) )
 			return '';
 
 		// predefine some vars
@@ -319,10 +322,10 @@ class Profile_To_Avatar
 
 		$parsed_url = parse_url( $url );
 
-		if( isset( $parsed_url['path'] ) ) {
+		if ( isset( $parsed_url['path'] ) ) {
 			$user = trim( $parsed_url['path'], '/' );
 
-			if( ! empty( $user ) )
+			if ( ! empty( $user ) )
 				$avatar_url = str_replace( '%username%', $user, $avatar_template );
 		}
 
@@ -337,7 +340,7 @@ class Profile_To_Avatar
 	 */
 	public function get_twitter_avatar_url( $url = '' ) {
 
-		if( empty( $url ) )
+		if ( empty( $url ) )
 			return '';
 
 		$avatar_template = 'http://api.twitter.com/1/users/profile_image/%username%.original';
@@ -346,10 +349,10 @@ class Profile_To_Avatar
 
 		preg_match( '#/[^/]+/?$#Uuis', $url, $match );
 
-		if( ! empty( $match ) ) {
+		if ( ! empty( $match ) ) {
 			$user = trim( $match[0], '/' );
 
-			if( ! empty( $user ) )
+			if ( ! empty( $user ) )
 				$avatar_url = str_replace( '%username%', $user, $avatar_template );
 		}
 
