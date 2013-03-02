@@ -129,8 +129,7 @@ function uninstall() {
  */
 function init_autoloader() {
 
-	if ( ! class_exists( 'WordPress\Autoloader\Autoloader' ) )
-		require_once 'wordpress/autoloader.php';
+	require_once 'wordpress/autoloader.php';
 
 	$config = array(
 		'abspath' => __FILE__,
