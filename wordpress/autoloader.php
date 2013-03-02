@@ -227,6 +227,7 @@ if ( ! class_exists( 'WordPress\Autoloader\Autoloader' ) ) {
 		public function load_namespaced( $class ) {
 
 			$class = str_replace( '\\', DIRECTORY_SEPARATOR, $class );
+
 			// replace - with _ because - are not allowed in namespaces
 			$class = str_replace( '-', '_', $class );
 
