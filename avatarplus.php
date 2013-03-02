@@ -30,6 +30,7 @@ namespace AvatarPlus;
 
 use WordPress\Autoloader as Autoloader;
 use WordPress\Tools as Tools;
+use AvatarPlus\Cache as Cache;
 
 /**
  * Initialize plugin on theme setup.
@@ -135,7 +136,7 @@ function init_autoloader() {
 		'abspath' => __FILE__,
 	);
 
-	Autoloader\Autoloader::init( $config );
+	new Autoloader\Autoloader( $config );
 
 	return true;
 }
